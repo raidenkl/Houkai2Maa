@@ -1,0 +1,179 @@
+{
+    "$__mpe_config_新建Pipeline2": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "lastSyncTime": 1778676816790,
+            "isModifiedExternally": false,
+            "filePath": "G:\\GAMES\\Houkai2Maa\\assets\\resource\\pipeline\\阵营战.json",
+            "savedViewport": {
+                "x": 824,
+                "y": 610,
+                "zoom": 0.83
+            },
+            "filename": "新建Pipeline2",
+            "version": "v1.5.3"
+        }
+    },
+    "买体力": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "购买"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 143,
+                "y": -134
+            }
+        }
+    },
+    "开战": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "开战"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "判断是否进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 440,
+                "y": -326
+            }
+        }
+    },
+    "点备战装备": {
+        "pre_delay": 0,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    64,
+                    236,
+                    31,
+                    37
+                ]
+            }
+        },
+        "repeat": 3,
+        "post_delay": 15000,
+        "timeout": -1,
+        "next": [
+            "使用双倍体力"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1113,
+                "y": -307
+            }
+        }
+    },
+    "进入战斗": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "选择助战好友",
+                    "补充体力",
+                    "再次挑战"
+                ]
+            }
+        },
+        "pre_delay": 2000,
+        "action": {
+            "type": "Click"
+        },
+        "timeout": -1,
+        "next": [
+            "选助战",
+            "[JumpBack]买体力"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": -194,
+                "y": -339
+            }
+        }
+    },
+    "选助战": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "备用装备"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "开战"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 146,
+                "y": -353
+            }
+        }
+    },
+    "使用双倍体力": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "双倍.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": -1,
+        "next": [
+            "进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": -633,
+                "y": -141
+            }
+        }
+    },
+    "判断是否进入战斗": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "panduan.png"
+                ]
+            }
+        },
+        "next": [
+            "点备战装备"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 741,
+                "y": -332
+            }
+        }
+    }
+}
