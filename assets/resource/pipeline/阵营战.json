@@ -1,17 +1,14 @@
 {
-    "$__mpe_config_新建Pipeline2": {
+    "$__mpe_config_阵营战": {
         "$__mpe_code": {
             "prefix": "",
             "coordinateMode": "absolute-v1",
-            "lastSyncTime": 1778676816790,
-            "isModifiedExternally": false,
-            "filePath": "G:\\GAMES\\Houkai2Maa\\assets\\resource\\pipeline\\阵营战.json",
             "savedViewport": {
-                "x": 824,
-                "y": 610,
-                "zoom": 0.83
+                "x": 819,
+                "y": 541,
+                "zoom": 1
             },
-            "filename": "新建Pipeline2",
+            "filename": "阵营战",
             "version": "v1.5.3"
         }
     },
@@ -27,13 +24,38 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 300,
         "next": [
             "进入战斗"
         ],
         "$__mpe_code": {
             "position": {
-                "x": 143,
-                "y": -134
+                "x": 175,
+                "y": -162
+            }
+        }
+    },
+    "使用双倍体力": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "双倍.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": -1,
+        "rate_limit": 3000,
+        "next": [
+            "进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": -525,
+                "y": -186
             }
         }
     },
@@ -49,8 +71,9 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 30000,
         "next": [
-            "判断是否进入战斗"
+            "使用双倍体力"
         ],
         "$__mpe_code": {
             "position": {
@@ -59,29 +82,26 @@
             }
         }
     },
-    "点备战装备": {
-        "pre_delay": 0,
-        "action": {
-            "type": "Click",
+    "换双倍体力": {
+        "recognition": {
+            "type": "TemplateMatch",
             "param": {
-                "target": [
-                    64,
-                    236,
-                    31,
-                    37
+                "template": [
+                    "双倍体力兑换.png"
                 ]
             }
         },
-        "repeat": 3,
-        "post_delay": 15000,
-        "timeout": -1,
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 300,
         "next": [
-            "使用双倍体力"
+            "进入战斗"
         ],
         "$__mpe_code": {
             "position": {
-                "x": 1113,
-                "y": -307
+                "x": 172,
+                "y": 77
             }
         }
     },
@@ -96,14 +116,19 @@
                 ]
             }
         },
-        "pre_delay": 2000,
+        "pre_delay": 800,
         "action": {
-            "type": "Click"
+            "type": "LongPress",
+            "param": {
+                "duration": 300
+            }
         },
         "timeout": -1,
+        "rate_limit": 500,
         "next": [
             "选助战",
-            "[JumpBack]买体力"
+            "[JumpBack]买体力",
+            "[JumpBack]换双倍体力"
         ],
         "$__mpe_code": {
             "position": {
@@ -121,6 +146,7 @@
                 ]
             }
         },
+        "pre_delay": 200,
         "action": {
             "type": "Click"
         },
@@ -129,50 +155,8 @@
         ],
         "$__mpe_code": {
             "position": {
-                "x": 146,
-                "y": -353
-            }
-        }
-    },
-    "使用双倍体力": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": [
-                    "双倍.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "timeout": -1,
-        "next": [
-            "进入战斗"
-        ],
-        "$__mpe_code": {
-            "position": {
-                "x": -633,
-                "y": -141
-            }
-        }
-    },
-    "判断是否进入战斗": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": [
-                    "panduan.png"
-                ]
-            }
-        },
-        "next": [
-            "点备战装备"
-        ],
-        "$__mpe_code": {
-            "position": {
-                "x": 741,
-                "y": -332
+                "x": 164,
+                "y": -373
             }
         }
     }

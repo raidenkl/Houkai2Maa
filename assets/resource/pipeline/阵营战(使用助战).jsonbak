@@ -1,0 +1,206 @@
+{
+    "$__mpe_config_阵营战": {
+        "$__mpe_code": {
+            "prefix": "",
+            "coordinateMode": "absolute-v1",
+            "savedViewport": {
+                "x": 596,
+                "y": 494,
+                "zoom": 1
+            },
+            "filename": "阵营战",
+            "version": "v1.5.3"
+        }
+    },
+    "买体力": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "购买"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 300,
+        "next": [
+            "进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 175,
+                "y": -162
+            }
+        }
+    },
+    "使用双倍体力": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "双倍.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": -1,
+        "next": [
+            "进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": -525,
+                "y": -186
+            }
+        }
+    },
+    "判断是否进入战斗": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "panduan.png"
+                ]
+            }
+        },
+        "next": [
+            "点备战装备"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 741,
+                "y": -332
+            }
+        }
+    },
+    "开战": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "开战"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "判断是否进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 440,
+                "y": -326
+            }
+        }
+    },
+    "换双倍体力": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "双倍体力兑换.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 300,
+        "next": [
+            "进入战斗"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 172,
+                "y": 77
+            }
+        }
+    },
+    "点备战装备": {
+        "pre_delay": 0,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    64,
+                    236,
+                    31,
+                    37
+                ]
+            }
+        },
+        "repeat": 3,
+        "post_delay": 15000,
+        "timeout": -1,
+        "next": [
+            "使用双倍体力"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 1113,
+                "y": -307
+            }
+        }
+    },
+    "进入战斗": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "选择助战好友",
+                    "补充体力",
+                    "再次挑战"
+                ]
+            }
+        },
+        "pre_delay": 800,
+        "action": {
+            "type": "LongPress",
+            "param": {
+                "duration": 1000
+            }
+        },
+        "timeout": -1,
+        "rate_limit": 500,
+        "next": [
+            "选助战",
+            "[JumpBack]买体力",
+            "[JumpBack]换双倍体力"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": -194,
+                "y": -339
+            }
+        }
+    },
+    "选助战": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "备用装备"
+                ]
+            }
+        },
+        "pre_delay": 200,
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "开战"
+        ],
+        "$__mpe_code": {
+            "position": {
+                "x": 164,
+                "y": -373
+            }
+        }
+    }
+}
