@@ -147,7 +147,7 @@ def install_chores():
 
 def install_agent():
     shutil.copytree(
-        working_dir / "agent",
+        working_dir / "assets" / "agent",
         install_path / "agent",
         dirs_exist_ok=True,
         ignore=shutil.ignore_patterns("tests", "__pycache__", "*.pyc"),

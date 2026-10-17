@@ -1,6 +1,6 @@
 ---
 name: agent-guide
-description: 在 Houkai2Maa 的 agent/ 下新增或修改自定义动作/自定义识别（MaaFramework AgentServer）。包含职责边界、注册与命名、参数约定、日志、单测与 lint 校验方式。用于实现需要计数、组合判定、动态改流程或设备操作的逻辑。
+description: 在 Houkai2Maa 的 assets/agent/ 下新增或修改自定义动作/自定义识别（MaaFramework AgentServer）。包含职责边界、注册与命名、参数约定、日志、单测与 lint 校验方式。用于实现需要计数、组合判定、动态改流程或设备操作的逻辑。
 ---
 
 # Agent 自定义件开发指南（Houkai2Maa）
@@ -20,7 +20,7 @@ description: 在 Houkai2Maa 的 agent/ 下新增或修改自定义动作/自定�
 ## 目录与注册
 
 ```tree
-agent/
+assets/agent/
 ├── main.py                     # 唯一入口：register_all() + AgentServer.start_up
 ├── actions/
 │   ├── __init__.py             # MODULES + register_all() -> list[str]
@@ -75,7 +75,7 @@ agent/
 ## 单测与验证
 
 ```bash
-npm run test        # pytest agent/tests
+npm run test        # pytest assets/agent/tests tools/tests
 npm run lint        # 校验 pipeline 里引用的 Custom ID 是否注册
 uvx maafw-cli action custom FarmLoop --raw '{"max_times":1}'
 ```

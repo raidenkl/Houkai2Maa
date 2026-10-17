@@ -30,7 +30,7 @@ def main(argv: list[str]) -> int:
         print("未找到 pytest，请先执行：python tools/dev/setup.py", file=sys.stderr)
         return 2
 
-    args = argv or ["agent/tests", "tools/tests", "-q"]
+    args = argv or ["assets/agent/tests", "tools/tests", "-q"]
     return int(pytest.main(args))
 
 

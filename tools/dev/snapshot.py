@@ -42,7 +42,7 @@ from maa.pipeline import JOCR, JRecognitionType  # noqa: E402
 from maa.resource import Resource  # noqa: E402
 from maa.tasker import Tasker  # noqa: E402
 
-sys.path.insert(0, str(REPO_ROOT / "agent"))
+sys.path.insert(0, str(REPO_ROOT / "assets" / "agent"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common.png import write_png  # noqa: E402

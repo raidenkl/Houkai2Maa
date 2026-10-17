@@ -49,6 +49,19 @@
             ]
         }
     ],
+    // 预任务：启动 Controller 前检查截图分辨率（PI v2.7+）
+    "pretask": {
+        "controller": [
+            "安卓端"
+        ],
+        "exec": "python",
+        "args": [
+            "./agent/pretask/device_prepare.py"
+        ],
+        "name": "DevicePrepare",
+        "label": "设备分辨率检查",
+        "description": "启动前检查设备截图是否为 1280×720（16:9）。不符会中止并给出修改方法。"
+    },
     // Agent：pipeline 里的 Custom 动作/识别由它执行（需要 Python + maafw）
     "agent": {
         "child_exec": "python",

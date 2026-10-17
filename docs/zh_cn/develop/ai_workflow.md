@@ -9,7 +9,7 @@ AI 会话不需要历史上下文，也能按这套流程安全地改动。
 | 技能             | 何时用                                            |
 | ---------------- | ------------------------------------------------- |
 | `pipeline-guide` | 写/改 pipeline JSON、选识别与动作、加兜底、调 ROI |
-| `agent-guide`    | 在 `agent/` 加自定义动作/识别、参数与单测         |
+| `agent-guide`    | 在 `assets/agent/` 加自定义动作/识别、参数与单测  |
 | `add-daily-task` | 从零新增一个日常任务的完整 SOP                    |
 
 DSH / Claude Code 会自动发现这些技能；其他工具可直接读 `SKILL.md`。
@@ -42,7 +42,7 @@ python tools/dev/snapshot.py --image shots/signin.png --json
 ### 2. 改（受约束）
 
 - 只改这些位置：`assets/resource/pipeline/**`、`assets/resource/image/**`、
-  `assets/tasks/**`、`agent/**`、`tests/**`、文档；
+  `assets/tasks/**`、`assets/agent/**`、`tests/**`、文档；
 - 不要手改 `deps/tools/*.schema.json`；
 - 改完立刻跑 `npm run lint`，它会指出命名、ROI、兜底、Custom ID 等问题。
 

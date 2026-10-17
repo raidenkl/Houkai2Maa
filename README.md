@@ -34,7 +34,7 @@ python tools/dev/snapshot.py --image shots/home.png        # 对截图做 OCR，
 python tools/dev/dryrun.py --images shots/ --entry <Entry> # 用截图跑流程结构
 ```
 
-发布包：使用 [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) 打开
+发布包：使用 [MFAAvalonia](https://github.com/MaaXYZ/MFAAvalonia) 打开
 `assets/interface.json`，或使用 Release 中的整合包。
 
 ## 目录结构
@@ -47,7 +47,7 @@ assets/resource/
 ├── image/                   # 模板图（720p）
 └── model/ocr/               # OCR 模型（构建时注入）
 assets/tasks/                # 任务与选项片段（interface import，相对 interface.json）
-agent/                       # AgentServer：自定义动作/识别 + 单测
+assets/agent/                # AgentServer：自定义动作/识别 + 预任务 + 单测
 tools/                       # lint / record / replay / setup
 tests/                       # cases（回放）与 node-cases（离线识别）
 docs/zh_cn/develop/          # 约定、AI 工作流、游戏事实表

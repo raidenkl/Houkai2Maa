@@ -38,7 +38,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 RESOURCE_DIR = REPO_ROOT / "assets" / "resource"
 PIPELINE_DIR = RESOURCE_DIR / "pipeline"
 IMAGE_DIR = RESOURCE_DIR / "image"
-AGENT_DIR = REPO_ROOT / "agent"
+AGENT_DIR = REPO_ROOT / "assets" / "agent"
 INTERFACE_FILE = REPO_ROOT / "assets" / "interface.json"
 ALLOWLIST_FILE = Path(__file__).resolve().parent / "allowlist.json"
 TASKS_DIR = INTERFACE_FILE.parent / "tasks"
@@ -627,6 +627,24 @@ def load_interface(ctx: LintContext) -> set[str]:
         for option in as_list(task.get("option")):
             if option not in option_names:
                 ctx.error("E218", f"任务 `{task_name}` 引用了未定义的 option `{option}`", file="assets/interface.json")
+
+    for pretask in as_list(interface.get("pretask")):
+        if not isinstance(pretask, dict):
+            continue
+        exec_name = str(pretask.get("exec", ""))
+        args = as_list(pretask.get("args"))
+        if not exec_name:
+            ctx.error("E219", "pretask 缺少 `exec`", file="assets/interface.json")
+        for arg in args:
+            if not isinstance(arg, str) or not arg.startswith("./"):
+                continue
+            target = (INTERFACE_FILE.parent / arg).resolve()
+            if not target.is_file():
+                ctx.error(
+                    "E219",
+                    f"pretask `{pretask.get('name') or exec_name}` 的脚本不存在：{arg}",
+                    file="assets/interface.json",
+                )
 
     for option in as_list(interface.get("global_option")):
         if option not in option_names:

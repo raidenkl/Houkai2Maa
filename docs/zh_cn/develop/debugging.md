@@ -26,8 +26,22 @@
 | 误点到别的界面       | ROI 太大 / 模板太宽泛                     | 缩小 ROI、裁更独特的局部；用 `tests/node-cases` 做离线验证     |
 | 识别分数不上不下     | 模板不是 720p 裁的，或游戏画质不同        | 重新用 `crop.py` 从 720p 截图裁模板                            |
 | Custom 动作没生效    | ID 拼写不一致                             | `npm run lint` 会报 E204（未注册 ID）                          |
-| Agent 起不来         | 用户环境没装 `maafw`                      | `python -m pip install -r agent/requirements.txt`              |
+| Agent 起不来         | 用户环境没装 `maafw`                      | `python -m pip install -r assets/agent/requirements.txt`       |
 | 循环不结束           | 计数逻辑或 `max_hit` 缺失                 | 看 `debug/agent.log` 里的 FarmLoop 日志                        |
+
+## 预任务失败（DevicePrepare）
+
+预任务在 Controller 启动前执行，失败会中止启动。典型输出与处理：
+
+| 输出                          | 原因                             | 处理                                                     |
+| ----------------------------- | -------------------------------- | -------------------------------------------------------- |
+| `未找到 ADB 设备`             | 模拟器没启动 / adb 看不到        | 启动模拟器；`adb devices` 确认连接                       |
+| `截图是 1600x720（…非 16:9）` | 手机是 20:9，短边缩放后不是 16:9 | 模拟器设为 1280×720，或用 `adb shell wm size 1280x720`   |
+| `截图是 1920x1080`            | 分辨率不是 720p                  | 改为 1280×720（识别更快、字更清晰）                      |
+| `截图是竖屏`                  | 游戏未横屏                       | 转横屏后再启动                                           |
+| `缺少 maafw`                  | 用户环境没装 Python 依赖         | `python -m pip install -r assets/agent/requirements.txt` |
+
+离线校验某张截图：`python assets/agent/pretask/device_prepare.py --image shot.png`。
 
 ## 3. 离线复现（推荐先做）
 

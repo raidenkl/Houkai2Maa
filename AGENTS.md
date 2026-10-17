@@ -8,7 +8,7 @@
 **方案二：JSON 流水线 + Agent 自定义逻辑扩展。**
 
 - `assets/resource/pipeline/**`（JSON）：识别、点击、跳转、循环骨架；
-- `agent/**`（Python）：只在「代码才自然」的地方介入——
+- `assets/agent/**`（Python）：只在「代码才自然」的地方介入——
     1. 组合/数值判定（例：体力不足 = 弹窗模板 + OCR 数值）；
     2. 动态流程改写（`context.override_next`）；
     3. 跨节点状态（已刷次数、失败次数、已领状态）；
@@ -30,7 +30,7 @@ assets/resource/
 ├── image/                        # 模板图（与 pipeline 同构的子目录）
 └── model/ocr/                    # OCR 模型（gitignore，由 tools/configure.py 注入）
 assets/tasks/                     # PI v2 import 片段（相对 interface.json 解析）
-agent/                            # AgentServer：actions/ recognitions/ common/ tests/
+assets/agent/                     # AgentServer：actions/ recognitions/ pretask/ common/ tests/
 tools/                            # lint / record / replay / setup
 tests/                            # cases(回放) 与 node-cases(离线识别)
 docs/zh_cn/develop/               # 开发文档
@@ -48,7 +48,7 @@ docs/zh_cn/develop/               # 开发文档
 5. **命名规范**：节点名/文件名/图片路径用 ASCII PascalCase；内部节点 `__` 前缀，
    且禁止被 `assets/tasks/` 直接引用。中文只出现在 `label`/`description`/OCR `expected`。
 6. **Custom ID 必须真实注册**：pipeline 里写的 `custom_action` / `custom_recognition`
-   必须在 `agent/` 中有同名装饰器，否则 lint 报 E204。
+   必须在 `assets/agent/` 中有同名装饰器，否则 lint 报 E204。
 
 ## 常用命令
 
@@ -78,6 +78,7 @@ python tools/dev/snapshot.py --image shots/x.png --grid  # 额外输出 100px �
 python tools/dev/crop.py --screen <png> --box x,y,w,h --out 30_daily/<Task>/xxx.png --node <Node>
 python tools/dev/dryrun.py --images shots/ --entry <Entry>   # 用截图离线跑流程（无需设备）
 python tools/dev/probe.py --node <Node> --image shots/x.png  # 单节点命中/框/分数（调阈值）
+python assets/agent/pretask/device_prepare.py --image shots/x.png   # 分辨率体检（预任务同款）
 python tools/dev/record.py --case <case> --entry <Entry>
 python tools/dev/replay.py --case <case>
 ```

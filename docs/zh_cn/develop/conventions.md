@@ -52,14 +52,27 @@
 - 等目标：插一个识别节点（例如 `CommonLoading` 的 `inverse`）；
 - 战斗这种「时长不可预测」的等待，用结算界面识别 + `timeout` + `on_error` 重试。
 
-## 6. option 与任务注册
+## 6. 预任务（pretask）
+
+`interface.json` 的 `pretask` 会在 Controller 启动前执行（PI v2.7+，MFAAvalonia 已支持），
+失败则中止启动。目前只做一件事：**检查截图分辨率是否为 1280×720**，
+避免「分辨率不对 → 全量坐标偏移 → 识别不到」这种难查问题。
+
+- 脚本：`assets/agent/pretask/device_prepare.py`（`--image` 可离线校验单张截图）
+- 判定逻辑：`assets/agent/common/frame.py`（纯函数，有单测）
+- 故障处理：见 [debugging.md](./debugging.md#预任务失败)
+
+新增预任务时：`exec` 用 `python`，`args` 指向 `./agent/pretask/xxx.py`（相对 interface.json 所在目录；安装包里 agent/ 与 interface 同级），
+并用 `controller` 限定适用控制器（lint 规则 E219 会检查脚本是否存在）。
+
+## 7. option 与任务注册
 
 - 参数一律走 `option` + `pipeline_override`，不要在 pipeline 里写死次数/开关；
 - `option` 定义放 `assets/tasks/options/global.json`（跨任务）或 `assets/tasks/daily/<Task>.json`（任务内）；
 - 新任务的 `assets/tasks/*.json` 必须加入 `interface.json` 的 `import`（路径相对 `assets/`）；
 - 任务 `group` 只能是 `daily` / `activity` / `tools`。
 
-## 7. 规则豁免
+## 8. 规则豁免
 
 `tools/lint/allowlist.json` 只用于「已登记的技术债」：
 
@@ -73,7 +86,7 @@
 
 新增豁免必须在 PR 描述里写清楚**移除时间点**；Phase 4 完成后应清空。
 
-## 8. 提交前检查
+## 9. 提交前检查
 
 ```bash
 npm run verify      # check + test:node + lint + schema + test + replay + format:check

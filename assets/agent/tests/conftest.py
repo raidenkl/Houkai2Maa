@@ -5,8 +5,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-AGENT_ROOT = REPO_ROOT / "agent"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+AGENT_ROOT = REPO_ROOT / "assets" / "agent"
 LOCAL_LIB = REPO_ROOT / ".pylib"
 
 for path in (str(AGENT_ROOT), str(LOCAL_LIB)):
