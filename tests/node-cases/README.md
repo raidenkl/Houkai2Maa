@@ -28,6 +28,13 @@
 npm run test:node
 ```
 
+也可以由截图自动生成（推荐，避免手写节点名出错）：
+
+```bash
+npm run nodecase -- --node NavHomeFlag --node DailySignInButton --images shots/home
+# 产物：tests/node-cases/generated.json + tests/node-cases/screens/*.png
+```
+
 缺少截图时工具会打印 `not exists, ignored` 并跳过该用例。
 
 ## 截图要求

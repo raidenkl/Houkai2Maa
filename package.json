@@ -13,7 +13,8 @@
         "verify": "npm run check && npm run test:node && npm run lint && npm run schema && npm run test && npm run replay && npm run format:check",
         "record": "python tools/dev/record.py",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "nodecase": "python tools/dev/nodecase.py"
     },
     "devDependencies": {
         "@nekosu/maa-tools": "1.1.3",

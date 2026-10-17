@@ -61,6 +61,10 @@ python tools/dev/snapshot.py --image shots/signin.png --json
 ### 4. 录（沉淀回归）
 
 ```bash
+# 节点级：哪张截图该命中哪个节点（轻量，随每次改动跑）
+npm run nodecase -- --node NavHomeFlag --node DailySignInButton --images shots/home
+
+# 流程级：整条任务的分支与连通性
 python tools/dev/record.py --case <case> --entry <Entry>
 ```
 

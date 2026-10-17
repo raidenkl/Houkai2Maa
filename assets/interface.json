@@ -92,5 +92,17 @@
     "task": [],
     "import": [
         "tasks/activity/FactionWar.json"
+    ],
+    "preset": [
+        {
+            "name": "ActivityOnly",
+            "label": "只做活动",
+            "description": "只勾选活动玩法（目前为阵营战）。",
+            "task": [
+                {
+                    "name": "FactionWar"
+                }
+            ]
+        }
     ]
 }

@@ -79,6 +79,7 @@ python tools/dev/crop.py --screen <png> --box x,y,w,h --out 30_daily/<Task>/xxx.
 python tools/dev/dryrun.py --images shots/ --entry <Entry>   # 用截图离线跑流程（无需设备）
 python tools/dev/probe.py --node <Node> --image shots/x.png  # 单节点命中/框/分数（调阈值）
 python assets/agent/pretask/device_prepare.py --image shots/x.png   # 分辨率体检（预任务同款）
+python tools/dev/nodecase.py --node <Node> --images shots/   # 截图 → node-case 回归用例
 python tools/dev/record.py --case <case> --entry <Entry>
 python tools/dev/replay.py --case <case>
 ```

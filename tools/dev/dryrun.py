@@ -36,6 +36,7 @@ from maa.tasker import Tasker  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from shared.lists import is_subsequence  # noqa: E402
 from static_controller import StaticImageController, load_images  # noqa: E402
 
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".bmp")
@@ -64,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--entry", required=True, help="入口节点名")
     parser.add_argument("--resource", default="assets/resource", help="资源包目录（相对仓库根）")
     parser.add_argument("--once", action="store_true", help="图片只播一遍（默认循环）")
+    parser.add_argument("--expect", help="期望按顺序出现的节点，逗号分隔（有序列子序列断言）")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出结果")
     args = parser.parse_args(argv)
 
@@ -96,6 +98,12 @@ def main(argv: list[str] | None = None) -> int:
     nodes = [{"name": node.name, "completed": bool(node.completed)} for node in detail.nodes]
     succeeded = bool(detail.status.succeeded)
 
+    actual = [item["name"] for item in nodes if item["name"]]
+    expected = [item.strip() for item in (args.expect or "").split(",") if item.strip()]
+    expectation_ok = is_subsequence(expected, actual) if expected else True
+    if expected and not expectation_ok:
+        succeeded = False
+
     if args.json:
         print(
             json.dumps(
@@ -103,6 +111,8 @@ def main(argv: list[str] | None = None) -> int:
                     "entry": args.entry,
                     "images": [str(path) for path in files],
                     "succeeded": succeeded,
+                    "expected": expected,
+                    "expectation_ok": expectation_ok,
                     "nodes": nodes,
                 },
                 ensure_ascii=False,
@@ -113,6 +123,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"入口 {args.entry}，截图 {len(files)} 张（{'单次' if args.once else '循环'}）")
         for item in nodes:
             print(f"  {'✓' if item['completed'] else '×'} {item['name']}")
+        if expected:
+            print(f"期望序列：{expected} → {'命中' if expectation_ok else '未命中'}")
         print(f"\n结果：{'成功' if succeeded else '失败'}，共 {len(nodes)} 个节点")
         print("提示：离线只验证流程结构，最终请用真机再跑一遍。")
     return 0 if succeeded else 1

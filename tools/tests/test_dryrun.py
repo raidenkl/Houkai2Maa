@@ -59,3 +59,43 @@ def test_unknown_entry_reports_failure() -> None:
 
     assert code == 1
     assert "失败" in buffer.getvalue()
+
+
+def test_expect_sequence_passes_for_fixture() -> None:
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        code = dryrun.main(
+            [
+                "--resource",
+                "tests/fixtures/smoke/resource",
+                "--images",
+                "tests/fixtures/smoke/screens",
+                "--entry",
+                "SmokeEntry",
+                "--once",
+                "--expect",
+                "SmokeStepA,SmokeStepB",
+            ]
+        )
+    assert code == 0
+    assert "命中" in buffer.getvalue()
+
+
+def test_expect_sequence_fails_when_order_wrong() -> None:
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        code = dryrun.main(
+            [
+                "--resource",
+                "tests/fixtures/smoke/resource",
+                "--images",
+                "tests/fixtures/smoke/screens",
+                "--entry",
+                "SmokeEntry",
+                "--once",
+                "--expect",
+                "SmokeStepB,SmokeStepA",
+            ]
+        )
+    assert code == 1
+    assert "未命中" in buffer.getvalue()

@@ -554,6 +554,7 @@ def load_interface(ctx: LintContext) -> set[str]:
         if isinstance(task, dict) and task.get("entry"):
             entries.add(str(task["entry"]))
 
+    imported_task_names: set[str] = set()
     for import_path in as_list(interface.get("import")):
         imported = (INTERFACE_FILE.parent / str(import_path)).resolve()
         if not imported.is_file():
@@ -567,6 +568,7 @@ def load_interface(ctx: LintContext) -> set[str]:
         for task in as_list(fragment.get("task")):
             if isinstance(task, dict) and task.get("entry"):
                 entries.add(str(task["entry"]))
+                imported_task_names.add(str(task.get("name", "")))
 
     for name in entries:
         if name not in ctx.nodes:
@@ -643,6 +645,44 @@ def load_interface(ctx: LintContext) -> set[str]:
                 ctx.error(
                     "E219",
                     f"pretask `{pretask.get('name') or exec_name}` 的脚本不存在：{arg}",
+                    file="assets/interface.json",
+                )
+
+    task_names = {
+        str(task.get("name"))
+        for task in as_list(interface.get("task"))
+        if isinstance(task, dict) and task.get("name")
+    } | {name for name in imported_task_names if name}
+    pretask_names = {
+        str(pretask.get("name"))
+        for pretask in as_list(interface.get("pretask"))
+        if isinstance(pretask, dict) and pretask.get("name")
+    }
+    for preset in as_list(interface.get("preset")):
+        if not isinstance(preset, dict):
+            continue
+        preset_name = str(preset.get("name", ""))
+        for task in as_list(preset.get("task")):
+            task_name = task.get("name") if isinstance(task, dict) else task
+            if task_name not in task_names:
+                ctx.error(
+                    "E220",
+                    f"preset `{preset_name}` 引用了不存在的任务 `{task_name}`",
+                    file="assets/interface.json",
+                )
+        for option, value in (preset.get("option") or {}).items():
+            if option not in option_names:
+                ctx.error(
+                    "E220",
+                    f"preset `{preset_name}` 引用了未定义的 option `{option}`",
+                    file="assets/interface.json",
+                )
+            del value  # 取值类型由 schema 校验
+        for item in as_list(preset.get("pretask")):
+            if isinstance(item, dict) and item.get("name") and item["name"] not in pretask_names:
+                ctx.error(
+                    "E220",
+                    f"preset `{preset_name}` 引用了不存在的 pretask `{item['name']}`",
                     file="assets/interface.json",
                 )
 

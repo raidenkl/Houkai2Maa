@@ -130,6 +130,13 @@ npm run test       # Agent 单测（如果改了 agent）
 python tools/dev/dryrun.py --images docs/zh_cn/develop/screens/<Task> --entry <Task>Entry
 ```
 
+把截图固化成节点回归（不需要设备）：
+
+```bash
+npm run nodecase -- --node <TaskName>Entry --node <TaskName>Claim --images shots/
+npm run test:node
+```
+
 有设备时再跑一遍真机：
 
 ```bash
