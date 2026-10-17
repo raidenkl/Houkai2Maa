@@ -4,15 +4,15 @@
             "prefix": "",
             "coordinateMode": "absolute-v1",
             "savedViewport": {
-                "x": 596,
-                "y": 494,
+                "x": 819,
+                "y": 541,
                 "zoom": 1
             },
             "filename": "阵营战",
             "version": "v1.5.3"
         }
     },
-    "买体力": {
+    "FactionWarBuyStamina": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -26,7 +26,7 @@
         },
         "post_delay": 300,
         "next": [
-            "进入战斗"
+            "FactionWarBattleReady"
         ],
         "$__mpe_code": {
             "position": {
@@ -35,7 +35,7 @@
             }
         }
     },
-    "使用双倍体力": {
+    "FactionWarEntry": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -48,8 +48,9 @@
             "type": "Click"
         },
         "timeout": -1,
+        "rate_limit": 3000,
         "next": [
-            "进入战斗"
+            "FactionWarBattleReady"
         ],
         "$__mpe_code": {
             "position": {
@@ -58,26 +59,7 @@
             }
         }
     },
-    "判断是否进入战斗": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": [
-                    "panduan.png"
-                ]
-            }
-        },
-        "next": [
-            "点备战装备"
-        ],
-        "$__mpe_code": {
-            "position": {
-                "x": 741,
-                "y": -332
-            }
-        }
-    },
-    "开战": {
+    "FactionWarStart": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -89,8 +71,9 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 30000,
         "next": [
-            "判断是否进入战斗"
+            "FactionWarEntry"
         ],
         "$__mpe_code": {
             "position": {
@@ -99,7 +82,7 @@
             }
         }
     },
-    "换双倍体力": {
+    "FactionWarExchangeDouble": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -113,7 +96,7 @@
         },
         "post_delay": 300,
         "next": [
-            "进入战斗"
+            "FactionWarBattleReady"
         ],
         "$__mpe_code": {
             "position": {
@@ -122,33 +105,7 @@
             }
         }
     },
-    "点备战装备": {
-        "pre_delay": 0,
-        "action": {
-            "type": "Click",
-            "param": {
-                "target": [
-                    64,
-                    236,
-                    31,
-                    37
-                ]
-            }
-        },
-        "repeat": 3,
-        "post_delay": 15000,
-        "timeout": -1,
-        "next": [
-            "使用双倍体力"
-        ],
-        "$__mpe_code": {
-            "position": {
-                "x": 1113,
-                "y": -307
-            }
-        }
-    },
-    "进入战斗": {
+    "FactionWarBattleReady": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -163,15 +120,15 @@
         "action": {
             "type": "LongPress",
             "param": {
-                "duration": 1000
+                "duration": 300
             }
         },
         "timeout": -1,
         "rate_limit": 500,
         "next": [
-            "选助战",
-            "[JumpBack]买体力",
-            "[JumpBack]换双倍体力"
+            "FactionWarAssist",
+            "[JumpBack]FactionWarBuyStamina",
+            "[JumpBack]FactionWarExchangeDouble"
         ],
         "$__mpe_code": {
             "position": {
@@ -180,7 +137,7 @@
             }
         }
     },
-    "选助战": {
+    "FactionWarAssist": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -194,7 +151,7 @@
             "type": "Click"
         },
         "next": [
-            "开战"
+            "FactionWarStart"
         ],
         "$__mpe_code": {
             "position": {

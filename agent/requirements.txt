@@ -1,0 +1,8 @@
+# Agent 运行依赖（用户侧）
+#
+# Agent 在用户机器上以子进程运行，需要 Python 3.10+ 与 maafw 绑定。
+# 安装：
+#   python -m pip install -r agent/requirements.txt
+#
+# 版本与 CI / 开发环境保持一致；MaaFramework 升级时同步提升上界。
+maafw>=5.14,<6

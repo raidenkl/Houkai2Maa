@@ -1,0 +1,55 @@
+{
+    // 全局默认参数（MaaFramework v5.3+）。
+    // 优先级：节点显式配置 > 本文件算法/动作默认 > 本文件 Default > 框架内置默认。
+    // 文档：https://github.com/MaaXYZ/MaaFramework/blob/main/docs/zh_cn/3.1-任务流水线协议.md#默认属性
+    "Default": {
+        "rate_limit": 300,
+        "timeout": 20000,
+        "pre_delay": 0,
+        "post_delay": 0
+    },
+    "TemplateMatch": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "threshold": 0.85,
+                "method": 5
+            }
+        }
+    },
+    "FeatureMatch": {
+        "recognition": {
+            "type": "FeatureMatch",
+            "param": {
+                "detector": "SIFT",
+                "ratio": 0.6
+            }
+        }
+    },
+    "OCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "threshold": 0.4,
+                "order_by": "Horizontal"
+            }
+        }
+    },
+    "Click": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        }
+    },
+    "LongPress": {
+        "action": {
+            "type": "LongPress",
+            "param": {
+                "target": true,
+                "duration": 300
+            }
+        }
+    }
+}

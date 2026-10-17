@@ -1,111 +1,90 @@
 {
-    // 本文件主要定义了通用 UI 的行为和显示内容
-    // 可参考文档和示例添加更多您需要的功能
-    // 文档：https://maafw.xyz/docs/3.3-ProjectInterfaceV2
-    // 示例：https://github.com/MaaXYZ/MaaFramework/blob/main/sample/interface.json
+    // Project Interface V2 协议：https://github.com/MaaXYZ/MaaFramework/blob/main/docs/zh_cn/3.3-ProjectInterfaceV2协议.md
+    // 开发约定见 AGENTS.md；坐标基准 1280x720（16:9）。
     "interface_version": 2,
     "name": "MaaHoukai2",
-    "description": "这是一个使用 MaaFramework 创建的项目。",
-    "contact": "QQ群: 123456789",
+    "label": "崩坏学园2 小助手",
+    "github": "https://github.com/raidenkl/Houkai2Maa",
+    "version": "2.0.0-dev.1",
+    "contact": "https://github.com/raidenkl/Houkai2Maa/issues",
     "license": "MIT",
-    "welcome": "首次使用！欢迎使用 MaaHoukai2!",
-    // 填写项目地址和版本号可实现自动更新功能
-    "github": "https://github.com/raidenkl/Houkai2Maa.git",
-    "version": "1.0.0",
-    // Mirror酱为第三方分发服务，新项目默认关闭
-    // 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
-    // "mirrorchyan_rid": "MaaXXX",
-    // "mirrorchyan_multiplatform": true,
+    "welcome": "欢迎使用 MaaHoukai2！首次使用请先按 README 完成环境准备（Python + maafw）。",
+    "description": "崩坏学园2 日常自动化：启动/登录 → 回主界面 → 领奖 → 体力刷本。由 MaaFramework 驱动。",
     "controller": [
         {
             "name": "安卓端",
+            "label": "安卓端（16:9 / 720p 基准）",
+            "description": "通过 ADB 连接模拟器或手机。请把分辨率设为 1280×720（16:9）。",
             "type": "Adb",
-            "display_short_side": 1080 // 默认缩放分辨率的短边长度
+            "display_short_side": 720
         },
         {
+            // 实验性：窗口匹配尚未实测，待 Phase 5 验证后转正
             "name": "桌面端",
+            "label": "桌面端（实验性）",
+            "description": "通过 Win32 连接 PC 客户端；窗口类名/标题待实测，暂不建议使用。",
             "type": "Win32",
             "win32": {
                 "class_regex": ".*",
-                "window_regex": "Visual Studio",
-                // 截图及控制方式，请根据项目实际情况修改
-                // 文档: https://maafw.xyz/docs/2.4-ControlMethods
-                "screencap": "PrintWindow", // 截图方式
-                "mouse": "PostMessageWithCursorPos", // 鼠标控制方式
-                "keyboard": "PostMessageWithCursorPos" // 键盘控制方式
+                "window_regex": "崩坏学园2",
+                "screencap": "PrintWindow",
+                "mouse": "PostMessageWithCursorPos",
+                "keyboard": "PostMessageWithCursorPos"
             }
         }
     ],
     "resource": [
         {
             "name": "官服",
+            "label": "官服",
             "path": [
                 "./resource"
             ]
         },
         {
             "name": "B 服",
+            "label": "B 服",
             "path": [
                 "./resource"
-                // "./resource_bilibili"
             ]
         }
     ],
-    // 可选的 agent 示例
-    // "agent": {
-    //     "child_exec": "python",
-    //     "child_args": [
-    //         "./agent/main.py"
-    //     ]
-    // },
+    // Agent：pipeline 里的 Custom 动作/识别由它执行（需要 Python + maafw）
+    "agent": {
+        "child_exec": "python",
+        "child_args": [
+            "./agent/main.py"
+        ]
+    },
+    "group": [
+        {
+            "name": "daily",
+            "label": "日常",
+            "description": "每天需要完成的玩法",
+            "default_expand": true
+        },
+        {
+            "name": "activity",
+            "label": "活动",
+            "description": "随版本变动的活动玩法（阵营战等）",
+            "default_expand": true
+        },
+        {
+            "name": "tools",
+            "label": "工具",
+            "description": "调试与辅助任务",
+            "default_expand": false
+        }
+    ],
     "task": [
         {
-            "name": "阵营战",
-            "entry": "使用双倍体力",
-            // "option": [
-            //     "使用双倍体力"
-            // ],
-            "description": "循环刷bonus关卡，会自动购买体力，需要点进bonus关卡的备战页面"
+            "name": "FactionWar",
+            "label": "阵营战",
+            "entry": "FactionWarEntry",
+            "description": "循环刷 bonus 关卡，会自动购买体力。使用前请先手动点进 bonus 关卡的备战页面。",
+            "group": [
+                "activity"
+            ]
         }
-        // {
-        //     "name": "阵营战",
-        //     "entry": "使用双倍体力",
-        //     "description": "会使用双倍券循环刷bonus关卡，会自动购买体力，需要点进bonus关卡的备战页面"
-        // },
-        // {
-        //     "name": "参数任务",
-        //     "entry": "MyTask3",
-        //     "option": [
-        //         "任务选项1"
-        //     ],
-        //     "pipeline_override": {}
-        // },
-        // {
-        //     "name": "带Custom的任务",
-        //     "entry": "MyTask4"
-        // }
     ]
-    // "option": {
-    //     "任务选项1": {
-    //         "type": "select",
-    //         "cases": [
-    //             {
-    //                 "name": "文本1",
-    //                 "pipeline_override": {
-    //                     "OcrTask": {
-    //                         "text": "文本1"
-    //                     }
-    //                 }
-    //             },
-    //             {
-    //                 "name": "文本2",
-    //                 "pipeline_override": {
-    //                     "OcrTask": {
-    //                         "text": "文本2"
-    //                     }
-    //                 }
-    //             }
-    //         ]
-    //     }
-    // }
 }

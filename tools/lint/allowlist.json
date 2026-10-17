@@ -1,0 +1,16 @@
+{
+    // 规则豁免清单。
+    //
+    // 只允许「已知技术债 + 有明确移除时间点」的场景，不允许长期豁免。
+    // 结构：{ "<规则码>": { "<仓库相对路径>": ["节点名", ...] } }
+    // 豁免项会在 lint 汇总里计数；`--show-allowed` 可查看明细。
+    //
+    // 当前技术债：阵营战流水线是 v1.0 遗留脚本，Phase 4 会按 720p 与
+    // 「识别→操作→识别」重写，届时下列豁免应全部删除。
+    "E105": {
+        "assets/resource/pipeline/90_activity/FactionWar.json": ["FactionWarStart"]
+    },
+    "E203": {
+        "assets/resource/pipeline/90_activity/FactionWar.json": ["FactionWarEntry"]
+    }
+}

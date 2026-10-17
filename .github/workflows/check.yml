@@ -3,18 +3,34 @@ name: check
 on:
   push:
     branches:
-      - "**"
+      - '**'
     paths:
-      - ".github/workflows/check.yml"
-      - "assets/**"
-      - "**.py"
+      - '.github/workflows/check.yml'
+      - 'assets/**'
+      - 'agent/**'
+      - 'tasks/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'maatools.config.mts'
+      - 'prettier.config.mjs'
+      - '**.py'
   pull_request:
     branches:
-      - "**"
+      - '**'
     paths:
-      - ".github/workflows/check.yml"
-      - "assets/**"
-      - "**.py"
+      - '.github/workflows/check.yml'
+      - 'assets/**'
+      - 'agent/**'
+      - 'tasks/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'maatools.config.mts'
+      - 'prettier.config.mjs'
+      - '**.py'
   workflow_dispatch:
 
 jobs:
@@ -24,23 +40,52 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Use Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Run maa-checker
-        run: |
-          npm ci
-          npx @nekosu/maa-tools check
+      - name: Install node dependencies
+        run: npm ci
 
-      - name: Install maafw
+      # 框架语义检查：任务树、图片路径、pipeline 结构等
+      - name: Run maa-tools check
+        run: npx @nekosu/maa-tools check
+
+      # 离线节点测试：tests/node-cases 中「截图 → 期望命中节点」的用例
+      - name: Run maa-tools node tests
+        run: npx @nekosu/maa-tools test
+
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install --upgrade maafw --pre
+          python -m pip install "maafw>=5.14,<6" jsonschema==4.26.0 referencing==0.37.0 pytest
+
+      - name: Prepare OCR model
+        run: python tools/configure.py
 
       - name: Validate JSON Schema
         run: |
-          python -m pip install jsonschema==4.26.0 referencing==0.37.0
-          python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --interface-files assets/interface.json
+          python tools/validate_schema.py \
+            --schema-dir deps/tools \
+            --resource-dirs assets/resource \
+            --exclude-dirs assets/resource/announcement \
+            --exclude-files "default_pipeline.json" \
+            --interface-files assets/interface.json
+
+      # 项目自身约定：720p 基准、命名、兜底、Custom ID 注册等
+      - name: Lint pipeline conventions
+        run: python tools/lint/pipeline_lint.py --strict
+
+      # Agent 纯逻辑单测（不需要设备）
+      - name: Run agent unit tests
+        run: python -m pytest agent/tests -q
+
+      - name: Check formatting
+        run: npx prettier --check .
+
+      # 回放用例：缺少录制文件时默认跳过；有录制时必须通过
+      - name: Replay recorded cases
+        run: python tools/dev/replay.py --all

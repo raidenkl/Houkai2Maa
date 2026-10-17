@@ -1,7 +1,25 @@
 {
-  "devDependencies": {
-    "@nekosu/maa-tools": "1.0.23",
-    "@types/node": "^25.5.2",
-    "prettier-plugin-multiline-arrays": "^3.0.6"
-  }
+    "name": "houkai2maa",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "setup": "python tools/dev/setup.py",
+        "check": "python tools/dev/maa_tools.py check",
+        "test:node": "python tools/dev/maa_tools.py test",
+        "lint": "python tools/lint/pipeline_lint.py --strict",
+        "schema": "python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --exclude-files default_pipeline.json --interface-files assets/interface.json",
+        "test": "python tools/dev/run_tests.py",
+        "replay": "python tools/dev/replay.py --all",
+        "verify": "npm run check && npm run test:node && npm run lint && npm run schema && npm run test && npm run replay && npm run format:check",
+        "record": "python tools/dev/record.py",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "devDependencies": {
+        "@nekosu/maa-tools": "1.1.3",
+        "@nekosu/prettier-plugin-maafw-sort": "1.1.0",
+        "@types/node": "^25.5.2",
+        "prettier": "^3.9.10",
+        "prettier-plugin-multiline-arrays": "^4.1.11"
+    }
 }

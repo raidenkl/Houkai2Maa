@@ -11,3 +11,14 @@ deps/tools/
 # 锁文件
 pnpm-lock.yaml
 package-lock.json
+
+# 与本项目无关的模板/配置，避免格式化产生噪音
+.github/ISSUE_TEMPLATE/
+.github/workflows/install.yml
+.github/workflows/mirrorchyan_release.yml
+.github/workflows/mirrorchyan_release_note.yml
+.github/workflows/sync_schema_files.yml
+.vscode/
+docs/.markdownlint.yaml
+docs/zh_cn/develop/custom_configure.md
+docs/zh_cn/develop/how_to_develop.md

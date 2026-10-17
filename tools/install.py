@@ -138,7 +138,17 @@ def install_agent():
         working_dir / "agent",
         install_path / "agent",
         dirs_exist_ok=True,
+        ignore=shutil.ignore_patterns("tests", "__pycache__", "*.pyc"),
     )
+
+
+def install_tasks():
+    """interface.json 的 `import` 片段（tasks/）必须随安装包一起分发。"""
+
+    tasks_dir = working_dir / "tasks"
+    if not tasks_dir.is_dir():
+        return
+    shutil.copytree(tasks_dir, install_path / "tasks", dirs_exist_ok=True)
 
 
 if __name__ == "__main__":
@@ -146,5 +156,6 @@ if __name__ == "__main__":
     install_resource()
     install_chores()
     install_agent()
+    install_tasks()
 
     print(f"Install to {install_path} successfully.")

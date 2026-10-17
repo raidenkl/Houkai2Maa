@@ -4,6 +4,15 @@ import sys
 import tempfile
 import argparse
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+try:
+    from shared.bootstrap import enable_local_lib
+
+    enable_local_lib()
+except ImportError:  # tools/common 缺失时退化为系统环境
+    pass
 from jsonschema import Draft7Validator, Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
@@ -232,6 +241,14 @@ def main():
         help="Directories to exclude from pipeline validation (default: none)",
     )
     parser.add_argument(
+        "--exclude-files",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Glob patterns (POSIX path or file name) to exclude from pipeline validation, "
+        "e.g. '*/default_pipeline.json' (default: none)",
+    )
+    parser.add_argument(
         "--interface-files",
         type=str,
         nargs="+",
@@ -279,6 +296,27 @@ def main():
 
     # 准备排除目录列表
     exclude_paths = [Path(d).resolve() for d in args.exclude_dirs]
+    exclude_globs = [pattern.replace("\\", "/") for pattern in args.exclude_files]
+
+    def is_excluded_file(file_path):
+        """按文件名/相对/绝对 POSIX 路径匹配 --exclude-files 中的 glob。"""
+
+        if not exclude_globs:
+            return False
+        import fnmatch
+
+        absolute = Path(file_path).resolve().as_posix()
+        relative = Path(file_path).as_posix()
+        candidates = {absolute, relative, Path(file_path).name}
+        try:
+            candidates.add(Path(file_path).resolve().relative_to(Path.cwd().resolve()).as_posix())
+        except ValueError:
+            pass
+        for pattern in exclude_globs:
+            for candidate in candidates:
+                if fnmatch.fnmatch(candidate, pattern) or fnmatch.fnmatch(candidate, f"*/{pattern}"):
+                    return True
+        return False
 
     def is_excluded(file_path):
         """检查文件是否在排除目录中"""
@@ -302,13 +340,13 @@ def main():
             continue
 
         for file_path in resource_path.rglob("*.json"):
-            if is_excluded(file_path):
+            if is_excluded(file_path) or is_excluded_file(file_path):
                 continue
             if not validate_file(file_path, pipeline_validator):
                 all_valid = False
 
         for file_path in resource_path.rglob("*.jsonc"):
-            if is_excluded(file_path):
+            if is_excluded(file_path) or is_excluded_file(file_path):
                 continue
             if not validate_file(file_path, pipeline_validator):
                 all_valid = False

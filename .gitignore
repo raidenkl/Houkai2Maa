@@ -452,3 +452,12 @@ tools/ImageCropper/**/*.png
 
 config
 debug
+# Local dev environment / caches (workspace-local, never committed)
+.pylib/
+.pip-cache/
+.npm-cache/
+.venv/
+
+# Runtime artifacts
+debug/
+.maa-tools/
