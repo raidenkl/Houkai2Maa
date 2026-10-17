@@ -50,3 +50,10 @@
 
 把截图放到 `debug/probe/`（或任意目录）并在上表写出文件名即可，
 AI 会用 `tools/dev/crop.py` 裁剪模板并生成节点。
+
+需要精确报坐标时加 `--grid` 生成带网格的截图（100px 一格、交点标坐标）：
+
+```bash
+python tools/dev/snapshot.py --image shots/signin.png --grid
+# 产物：xxx-grid.png（网格）/ xxx-ocr.png（识别框）/ xxx-ocr.json（文字+坐标）
+```

@@ -103,6 +103,38 @@ def capture_from_device(address: str | None, adb_path: str | None) -> numpy.ndar
     return image
 
 
+def draw_grid(image: numpy.ndarray, step: int = 100) -> numpy.ndarray:
+    """叠加坐标网格（100px 一格 + 边缘刻度），方便按截图报坐标。
+
+    需要 Pillow（画文字）；缺失时退化为只画线。
+    """
+
+    rgb = image[:, :, ::-1] if image.ndim == 3 and image.shape[2] == 3 else image
+    canvas = numpy.ascontiguousarray(rgb.copy())
+    height, width = canvas.shape[:2]
+    line_color = numpy.array([0, 220, 255], dtype=numpy.uint8)
+    for x in range(0, width, step):
+        canvas[:, x : x + 1] = line_color
+    for y in range(0, height, step):
+        canvas[y : y + 1, :] = line_color
+
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError:
+        return canvas
+
+    pil = Image.fromarray(canvas)
+    draw = ImageDraw.Draw(pil)
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf", 16)
+    except OSError:
+        font = ImageFont.load_default()
+    for x in range(0, width, step):
+        for y in range(0, height, step):
+            draw.text((x + 3, y + 2), f"{x},{y}", fill=(0, 220, 255), font=font)
+    return numpy.asarray(pil)
+
+
 def draw_boxes(image: numpy.ndarray, entries: list[dict]) -> numpy.ndarray:
     """在 RGB 图上画框与序号（纯 numpy，避免引入 Pillow/OpenCV）。"""
 
@@ -144,6 +176,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--adb", help="adb 可执行文件路径")
     parser.add_argument("--roi", help="OCR 区域 x,y,w,h（默认全屏）")
     parser.add_argument("--out", default="debug/probe", help="输出目录（默认 debug/probe）")
+    parser.add_argument("--grid", action="store_true", help="额外输出一张带坐标网格的截图（便于按图报坐标）")
     parser.add_argument("--json", action="store_true", help="把结果以 JSON 打印到 stdout")
     args = parser.parse_args(argv)
 
@@ -216,6 +249,10 @@ def main(argv: list[str] | None = None) -> int:
 
     write_png(screen_path, image)
     write_png(ocr_png_path, draw_boxes(image[:, :, ::-1], entries), bgr=False)
+    grid_path = None
+    if args.grid:
+        grid_path = out_dir / f"{stem}-grid.png"
+        write_png(grid_path, draw_grid(image), bgr=False)
     ocr_json_path.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     if args.json:
@@ -226,6 +263,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[{entry['index']:>2}] ({x:>4},{y:>3},{w:>4},{h:>3})  {entry['text']}")
         print(f"\n截图：{screen_path.relative_to(REPO_ROOT)}")
         print(f"标注：{ocr_png_path.relative_to(REPO_ROOT)}")
+        if grid_path is not None:
+            print(f"网格：{grid_path.relative_to(REPO_ROOT)}")
         print(f"文本：{ocr_json_path.relative_to(REPO_ROOT)}")
     return 0
 

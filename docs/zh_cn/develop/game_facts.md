@@ -13,6 +13,13 @@ uvx maafw-cli screenshot -o debug/probe/<场景>.png
 
 截图后确认尺寸为 1280×720（`python -c "from PIL import Image; print(Image.open('x.png').size)"`）。
 
+报坐标时建议让工具生成网格图，直接读刻度：
+
+```bash
+python tools/dev/snapshot.py --image shots/home.png --grid
+# 输出 xxx-grid.png：100px 一格，交点标注 "x,y"
+```
+
 ## 1. 基础信息
 
 | 项                | 官服 | B 服 | 备注                                                          |

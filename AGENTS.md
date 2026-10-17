@@ -74,6 +74,7 @@ uvx maafw-cli click e3                          # 点第 3 个 OCR 结果
 uvx maafw-cli action custom SaveShot --raw '{"tag":"probe"}'
 python tools/dev/snapshot.py                     # 设备截图 + 全屏 OCR + 标注图（无需 uv）
 python tools/dev/snapshot.py --image shots/x.png  # 离线 OCR 一张截图（自动缩放到 720p）
+python tools/dev/snapshot.py --image shots/x.png --grid  # 额外输出 100px 网格图，按图报坐标
 python tools/dev/crop.py --screen <png> --box x,y,w,h --out 30_daily/<Task>/xxx.png --node <Node>
 python tools/dev/dryrun.py --images shots/ --entry <Entry>   # 用截图离线跑流程（无需设备）
 python tools/dev/probe.py --node <Node> --image shots/x.png  # 单节点命中/框/分数（调阈值）
