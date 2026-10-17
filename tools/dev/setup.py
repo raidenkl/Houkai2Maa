@@ -35,7 +35,7 @@ OCR_DIR = REPO_ROOT / "assets" / "resource" / "model" / "ocr"
 OCR_SUBMODULE = REPO_ROOT / "assets" / "MaaCommonAssets" / "OCR" / "ppocr_v5" / "zh_cn"
 OCR_URL = "https://download.maafw.xyz/MaaCommonAssets/OCR/ppocr_v5/ppocr_v5-zh_cn.zip"
 OCR_FILES = ("det.onnx", "rec.onnx", "keys.txt")
-PIP_PACKAGES = ("maafw>=5.14,<6", "jsonschema==4.26.0", "referencing==0.37.0", "pytest")
+PIP_PACKAGES = ("maafw>=5.14,<6", "jsonschema==4.26.0", "referencing==0.37.0", "pytest", "pillow>=10")
 
 
 def log(message: str) -> None:

@@ -1,1 +1,8 @@
 json-with-comments
+
+# 开发/测试工具（本地脚本用；CI 单独安装）
+# run `python tools/dev/setup.py` to install into .pylib
+pillow>=10
+pytest>=8
+jsonschema==4.26.0
+referencing==0.37.0

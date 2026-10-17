@@ -1,0 +1,32 @@
+{
+    "SmokeEntry": {
+        "recognition": {"type": "DirectHit", "param": {"roi": [
+                    0,
+                    0,
+                    0,
+                    0
+                ]}},
+        "action": {"type": "DoNothing"},
+        "next": ["SmokeStepA"]
+    },
+    "SmokeStepA": {
+        "recognition": {"type": "TemplateMatch", "param": {"roi": [
+                    0,
+                    0,
+                    400,
+                    400
+                ], "template": "smoke/step-a.png"}},
+        "action": {"type": "Click"},
+        "next": ["SmokeStepB"]
+    },
+    "SmokeStepB": {
+        "recognition": {"type": "TemplateMatch", "param": {"roi": [
+                    400,
+                    200,
+                    800,
+                    400
+                ], "template": "smoke/step-b.png"}},
+        "action": {"type": "Click"},
+        "next": []
+    }
+}
