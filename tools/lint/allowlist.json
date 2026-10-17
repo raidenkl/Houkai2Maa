@@ -5,11 +5,11 @@
     // 结构：{ "<规则码>": { "<仓库相对路径>": ["节点名", ...] } }
     // 豁免项会在 lint 汇总里计数；`--show-allowed` 可查看明细。
     //
-    // 当前技术债：阵营战流水线是 v1.0 遗留脚本，Phase 4 会按 720p 与
-    // 「识别→操作→识别」重写，届时下列豁免应全部删除。
-    "E105": {
-        "assets/resource/pipeline/90_activity/FactionWar.json": ["FactionWarStart"]
-    },
+    // 当前技术债：阵营战流水线是 v1.0 遗留脚本，缺少通用弹窗兜底
+    // （10_common 的 CommonPopupAny 需要真实模板才能建）。
+    // Phase 4 按 720p 重写后应删除下列豁免。
+    //   - E105（>1000ms 固定延迟）：已移除，FactionWarStart 改为
+    //     timeout=120000 + rate_limit=2000 的识别驱动等待
     "E203": {
         "assets/resource/pipeline/90_activity/FactionWar.json": ["FactionWarEntry"]
     }

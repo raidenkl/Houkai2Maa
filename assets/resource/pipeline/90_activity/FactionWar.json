@@ -71,7 +71,8 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 30000,
+        "timeout": 120000,
+        "rate_limit": 2000,
         "next": [
             "FactionWarEntry"
         ],
