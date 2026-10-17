@@ -6,3 +6,6 @@ pillow>=10
 pytest>=8
 jsonschema==4.26.0
 referencing==0.37.0
+
+# Python 静态检查/格式化
+ruff>=0.17

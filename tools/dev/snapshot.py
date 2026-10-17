@@ -58,7 +58,7 @@ def load_image(path: Path) -> numpy.ndarray:
     try:
         from PIL import Image
     except ImportError:
-        raise SystemExit("离线分析需要 Pillow：python tools/dev/setup.py")
+        raise SystemExit("离线分析需要 Pillow：python tools/dev/setup.py") from None
 
     with Image.open(path) as source:
         image = source.convert("RGB")
@@ -74,7 +74,7 @@ def capture_from_device(address: str | None, adb_path: str | None) -> numpy.ndar
         from maa.controller import AdbController
         from maa.toolkit import Toolkit
     except ImportError as error:
-        raise SystemExit(f"缺少 maafw 依赖：{error}")
+        raise SystemExit(f"缺少 maafw 依赖：{error}") from error
 
     if address and adb_path:
         adb, target = adb_path, address

@@ -41,10 +41,10 @@ def test_custom_items_are_registered() -> None:
     # 在子进程里导入：AgentServer 相关模块会动到框架全局状态，
     # 在同进程里 import 会污染后续用 Tasker/Resource 的测试。
     code = (
-        "import sys; sys.path.insert(0, r'%s'); "
+        f"import sys; sys.path.insert(0, r'{AGENT_DIR}'); "
         "import actions, recognitions; "
         "print('ACTIONS', ','.join(actions.register_all())); "
-        "print('RECOGNITIONS', ','.join(recognitions.register_all()))" % AGENT_DIR
+        "print('RECOGNITIONS', ','.join(recognitions.register_all()))"
     )
     env = _python_env()
     completed = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, timeout=120)

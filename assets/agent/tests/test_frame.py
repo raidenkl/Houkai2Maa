@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from common.frame import evaluate_frame
 
 

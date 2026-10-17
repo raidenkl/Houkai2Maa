@@ -56,7 +56,9 @@ docs/zh_cn/develop/               # 开发文档
 python tools/dev/setup.py          # 一次性准备：.pylib 依赖 / OCR 模型 / node_modules 检查
 npm run check                      # 框架语义检查（任务树、图片、结构）
 npm run test:node                  # 离线节点测试（tests/node-cases）
-npm run lint                       # 本项目规范检查（--strict）
+npm run lint                       # 本项目 pipeline 规范检查（--strict）
+npm run lint:py                    # Python 静态检查（ruff）
+npm run format:py                  # Python 格式检查（ruff format）
 npm run schema                     # JSON Schema 校验
 npm run test                       # Agent 单元测试（pytest）
 npm run replay                     # 回放录制的端到端用例

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 
 
 def is_subsequence(expected: Sequence[str], actual: Iterable[str]) -> bool:

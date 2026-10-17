@@ -91,7 +91,11 @@
 ## 9. 提交前检查
 
 ```bash
-npm run verify      # check + test:node + lint + schema + test + replay + format:check
+npm run verify   # check + test:node + lint + lint:py + schema + test + replay + format:check + format:py
 ```
+
+Python 侧规范由 `ruff.toml` 定义：`E4/E7/E9/F/I/UP/B`，行宽 120，目标 py310；
+新增脚本时先 `python tools/dev/run_ruff.py check .` 和
+`python tools/dev/run_ruff.py format .`（或 `npm run format:py` 只做检查）。
 
 CI 会跑同样的命令；任何一项红都不合并。

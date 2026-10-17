@@ -45,9 +45,7 @@ def pick_device(address: str | None, adb_path: str | None) -> tuple[str, str]:
 
     devices = Toolkit.find_adb_devices()
     if not devices:
-        raise SystemExit(
-            "未找到 ADB 设备。请启动模拟器/连接手机后重试，或用 --adb / --address 手动指定。"
-        )
+        raise SystemExit("未找到 ADB 设备。请启动模拟器/连接手机后重试，或用 --adb / --address 手动指定。")
 
     if address:
         matched = [device for device in devices if device.address == address]

@@ -21,18 +21,18 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from common.log import get_logger
+from common.params import ParamError, as_str
+from common.state import STATE_CLAIMED, classify_panel
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
-
-from common.log import get_logger
-from common.params import ParamError, as_str
-from common.state import STATE_AVAILABLE, STATE_CLAIMED, classify_panel
 
 REGISTERED = ["PanelState"]
 RECOGNITION_ID = "PanelState"
 
 logger = get_logger("recognition.panel_state")
+
 
 def _parse(raw: str) -> dict[str, Any]:
     try:

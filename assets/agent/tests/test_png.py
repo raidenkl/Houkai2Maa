@@ -6,7 +6,6 @@ import struct
 import zlib
 
 import numpy
-
 from common.png import bgr_to_rgb, encode_png
 
 

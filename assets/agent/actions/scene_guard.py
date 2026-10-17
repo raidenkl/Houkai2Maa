@@ -18,12 +18,11 @@ from __future__ import annotations
 
 import json
 
+from common.log import get_logger
+from common.params import ParamError, as_bool, as_node_list, as_str
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-
-from common.log import get_logger
-from common.params import ParamError, as_bool, as_node_list, as_str
 
 REGISTERED = ["SceneGuard"]
 ACTION_ID = "SceneGuard"

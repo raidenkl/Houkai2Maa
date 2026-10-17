@@ -1,8 +1,7 @@
 import argparse
-from pathlib import Path
-
 import shutil
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -23,7 +22,6 @@ except ModuleNotFoundError as e:
     ) from e
 
 from configure import configure_ocr_model
-
 
 working_dir = Path(__file__).parent.parent.resolve()
 
@@ -110,7 +108,6 @@ def install_deps():
         )
 
 
-
 def install_resource():
 
     configure_ocr_model()
@@ -125,7 +122,7 @@ def install_resource():
         install_path,
     )
 
-    with open(install_path / "interface.json", "r", encoding="utf-8") as f:
+    with open(install_path / "interface.json", encoding="utf-8") as f:
         interface = jsonc.load(f)
 
     interface["version"] = version

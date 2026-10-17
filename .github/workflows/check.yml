@@ -61,7 +61,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "maafw>=5.14,<6" jsonschema==4.26.0 referencing==0.37.0 pytest pillow
+          python -m pip install "maafw>=5.14,<6" jsonschema==4.26.0 referencing==0.37.0 pytest pillow ruff
 
       - name: Prepare OCR model
         run: python tools/configure.py
@@ -79,6 +79,13 @@ jobs:
       # 项目自身约定：720p 基准、命名、兜底、Custom ID 注册等
       - name: Lint pipeline conventions
         run: python tools/lint/pipeline_lint.py --strict
+
+      # Python 静态检查与格式
+      - name: Ruff check
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
 
       # Agent 纯逻辑单测（不需要设备）
       - name: Run agent unit tests

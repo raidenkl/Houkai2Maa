@@ -70,6 +70,16 @@ uvx maafw-cli pipeline run <Entry>          # 跑一条 pipeline
 uvx maafw-cli action custom SaveShot --raw '{"tag":"probe"}'
 ```
 
+## CI 里常见失败
+
+| 报错                         | 处理                                                            |
+| ---------------------------- | --------------------------------------------------------------- |
+| `ruff check .` 失败          | `python tools/dev/run_ruff.py check . --fix`（unsafe 项手工改） |
+| `ruff format --check` 失败   | `python tools/dev/run_ruff.py format .`                         |
+| `prettier --check` 失败      | `npm run format`                                                |
+| `pipeline_lint.py` 报 E1xx   | 按提示修 ROI/命名/延迟；确属遗留技术债才加 `allowlist.json`     |
+| `maa-tools check` 报图片缺失 | 图片路径大小写或未提交（`git status` 确认）                     |
+
 ## 5. 提交 issue 时请附上
 
 1. `debug/maa.log`（最近一次运行的，不要截断）；

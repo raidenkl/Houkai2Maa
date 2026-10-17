@@ -26,13 +26,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from common.log import get_logger
+from common.params import ParamError, as_str, as_str_list
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.pipeline import JOCR, JRecognitionType
-
-from common.log import get_logger
-from common.params import ParamError, as_str, as_str_list
 
 REGISTERED = ["StaminaInsufficient"]
 RECOGNITION_ID = "StaminaInsufficient"

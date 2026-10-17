@@ -22,7 +22,7 @@
 # 1. 准备环境（Python 依赖装在 .pylib，OCR 模型自动注入）
 python tools/dev/setup.py
 
-# 2. 静态检查
+# 2. 静态检查（含 pipeline 规范、Python ruff、schema、单测、回放、格式）
 npm run verify
 
 # 3. 真机联调（示例）

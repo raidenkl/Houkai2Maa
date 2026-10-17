@@ -8,7 +8,8 @@ pipeline 传进来的 `custom_action_param` / `custom_recognition_param` 是任�
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 
 class ParamError(ValueError):

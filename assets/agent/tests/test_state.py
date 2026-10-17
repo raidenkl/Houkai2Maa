@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from common.state import (
     STOP_FAILURE_LIMIT,
     STOP_STAMINA,

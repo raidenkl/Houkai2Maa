@@ -13,6 +13,7 @@ pytest.importorskip("maa", reason="需要 maafw 绑定（python tools/dev/setup.
 
 import replay  # noqa: E402
 
+
 def write_case(directory: Path, name: str, recording: str) -> Path:
     path = directory / f"{name}.json"
     path.write_text(

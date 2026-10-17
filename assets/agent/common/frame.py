@@ -56,8 +56,7 @@ def evaluate_frame(width: int, height: int) -> FrameCheck:
     if abs(ratio - 16 / 9) < 0.02 and height != BASE_HEIGHT:
         return FrameCheck(
             False,
-            f"截图是 {width}x{height}，比例正确但不是 720p；"
-            "建议直接用 1280x720（缩放后字体会更清晰、识别更快）",
+            f"截图是 {width}x{height}，比例正确但不是 720p；建议直接用 1280x720（缩放后字体会更清晰、识别更快）",
         )
 
     return FrameCheck(

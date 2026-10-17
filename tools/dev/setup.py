@@ -35,7 +35,7 @@ OCR_DIR = REPO_ROOT / "assets" / "resource" / "model" / "ocr"
 OCR_SUBMODULE = REPO_ROOT / "assets" / "MaaCommonAssets" / "OCR" / "ppocr_v5" / "zh_cn"
 OCR_URL = "https://download.maafw.xyz/MaaCommonAssets/OCR/ppocr_v5/ppocr_v5-zh_cn.zip"
 OCR_FILES = ("det.onnx", "rec.onnx", "keys.txt")
-PIP_PACKAGES = ("maafw>=5.14,<6", "jsonschema==4.26.0", "referencing==0.37.0", "pytest", "pillow>=10")
+PIP_PACKAGES = ("maafw>=5.14,<6", "jsonschema==4.26.0", "referencing==0.37.0", "pytest", "pillow>=10", "ruff>=0.17")
 
 
 def log(message: str) -> None:
@@ -57,7 +57,11 @@ def module_available(module: str, extra_path: Path | None = None) -> bool:
 
 
 def install_python_deps(check_only: bool) -> bool:
-    if module_available("maa", LOCAL_LIB) and module_available("jsonschema", LOCAL_LIB) and module_available("pytest", LOCAL_LIB):
+    if (
+        module_available("maa", LOCAL_LIB)
+        and module_available("jsonschema", LOCAL_LIB)
+        and module_available("pytest", LOCAL_LIB)
+    ):
         log(f"Python 依赖已就绪：{LOCAL_LIB.relative_to(REPO_ROOT)}")
         return True
 

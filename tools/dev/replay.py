@@ -28,7 +28,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -52,7 +51,7 @@ def load_cases(cases_dir: Path) -> list[dict]:
         try:
             data = load_jsonc(path)
         except JsoncError as error:
-            raise SystemExit(f"用例解析失败：{error}")
+            raise SystemExit(f"用例解析失败：{error}") from error
         if not isinstance(data, dict) or "case" not in data:
             raise SystemExit(f"用例缺少 case 字段：{path}")
         try:

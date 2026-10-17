@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from pretask.device_prepare import main
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

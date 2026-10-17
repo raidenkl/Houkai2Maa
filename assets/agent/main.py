@@ -18,12 +18,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from maa.agent.agent_server import AgentServer  # noqa: E402
-from maa.toolkit import Toolkit  # noqa: E402
-
 from actions import register_all as register_actions  # noqa: E402
 from common.context import client_context  # noqa: E402
 from common.log import get_logger  # noqa: E402
+from maa.agent.agent_server import AgentServer  # noqa: E402
+from maa.toolkit import Toolkit  # noqa: E402
 from recognitions import register_all as register_recognitions  # noqa: E402
 
 logger = get_logger("agent")

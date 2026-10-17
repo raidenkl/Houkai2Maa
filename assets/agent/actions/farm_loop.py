@@ -24,13 +24,12 @@ from __future__ import annotations
 
 import json
 
-from maa.agent.agent_server import AgentServer
-from maa.context import Context
-from maa.custom_action import CustomAction
-
 from common.log import get_logger
 from common.params import ParamError, as_bool, as_int
 from common.state import FarmPlan, FarmProgress, decide_stop
+from maa.agent.agent_server import AgentServer
+from maa.context import Context
+from maa.custom_action import CustomAction
 
 REGISTERED = ["FarmLoop", "FarmReset", "FarmFail", "FarmNote"]
 LOOP_ACTION = "FarmLoop"

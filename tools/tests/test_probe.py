@@ -9,11 +9,10 @@ import pytest
 pytest.importorskip("maa", reason="需要 maafw 绑定（python tools/dev/setup.py）")
 pytest.importorskip("PIL", reason="需要 Pillow 读取 fixture 截图")
 
+import probe  # noqa: E402
 from maa.define import LoggingLevelEnum  # noqa: E402
 from maa.resource import Resource  # noqa: E402
 from maa.tasker import Tasker  # noqa: E402
-
-import probe  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = REPO_ROOT / "tests" / "fixtures" / "smoke"

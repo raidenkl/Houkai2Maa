@@ -10,11 +10,13 @@
         "schema": "python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --exclude-files default_pipeline.json --interface-files assets/interface.json --task-dirs assets/tasks",
         "test": "python tools/dev/run_tests.py",
         "replay": "python tools/dev/replay.py --all",
-        "verify": "npm run check && npm run test:node && npm run lint && npm run schema && npm run test && npm run replay && npm run format:check",
+        "verify": "npm run check && npm run test:node && npm run lint && npm run lint:py && npm run schema && npm run test && npm run replay && npm run format:check && npm run format:py",
         "record": "python tools/dev/record.py",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "nodecase": "python tools/dev/nodecase.py"
+        "nodecase": "python tools/dev/nodecase.py",
+        "lint:py": "python tools/dev/run_ruff.py check .",
+        "format:py": "python tools/dev/run_ruff.py format --check ."
     },
     "devDependencies": {
         "@nekosu/maa-tools": "1.1.3",

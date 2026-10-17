@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         from PIL import Image
     except ImportError:
-        raise SystemExit("需要 Pillow 解码截图：python tools/dev/setup.py（开发环境已安装）")
+        raise SystemExit("需要 Pillow 解码截图：python tools/dev/setup.py（开发环境已安装）") from None
 
     screen_path = Path(args.screen)
     if not screen_path.is_absolute():
@@ -101,7 +101,9 @@ def main(argv: list[str] | None = None) -> int:
     template_rel = args.out or "template.png"
     snippet = node_snippet(args.node or "UnnamedNode", template_rel, roi)
     payload = {
-        "screen": str(screen_path.relative_to(REPO_ROOT)) if screen_path.is_relative_to(REPO_ROOT) else str(screen_path),
+        "screen": str(screen_path.relative_to(REPO_ROOT))
+        if screen_path.is_relative_to(REPO_ROOT)
+        else str(screen_path),
         "template_box": list(box),
         "roi": list(roi),
         "template": template_rel,

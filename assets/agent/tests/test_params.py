@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from common.params import ParamError, as_bool, as_int, as_node_list, as_str, as_str_list
 from common.state import STATE_AVAILABLE, STATE_CLAIMED, classify_panel
 

@@ -33,8 +33,16 @@ def test_missing_screenshot_detected(tmp_path: Path) -> None:
         "\n".join(
             json.dumps(line)
             for line in [
-                {"type": "connect", "uuid": "x", "version": "v", "width": 1280, "height": 720,
-                 "success": True, "cost": 0, "timestamp": 1},
+                {
+                    "type": "connect",
+                    "uuid": "x",
+                    "version": "v",
+                    "width": 1280,
+                    "height": 720,
+                    "success": True,
+                    "cost": 0,
+                    "timestamp": 1,
+                },
                 {"type": "screencap", "path": "missing.png", "success": True, "cost": 0, "timestamp": 2},
             ]
         ),
@@ -60,8 +68,16 @@ def test_non_base_resolution_flagged(tmp_path: Path) -> None:
         "\n".join(
             json.dumps(line)
             for line in [
-                {"type": "connect", "uuid": "x", "version": "v", "width": 1920, "height": 1080,
-                 "success": True, "cost": 0, "timestamp": 1},
+                {
+                    "type": "connect",
+                    "uuid": "x",
+                    "version": "v",
+                    "width": 1920,
+                    "height": 1080,
+                    "success": True,
+                    "cost": 0,
+                    "timestamp": 1,
+                },
                 {"type": "screencap", "path": "a.png", "success": True, "cost": 0, "timestamp": 2},
             ]
         ),

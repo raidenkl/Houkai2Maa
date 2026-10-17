@@ -1,0 +1,42 @@
+# Ruff 配置（Python 静态检查 + 格式检查）
+#
+# 目标：给人和 AI 一致的快速反馈，不做风格洁癖。
+# 运行：python -m ruff check . / python -m ruff format --check .
+
+target-version = "py310"
+line-length = 120
+extend-exclude = [
+    ".pylib",
+    ".pma-tools",
+    ".maa-tools",
+    "node_modules",
+    "deps",
+    "assets/MaaCommonAssets",
+    "assets/resource/model",
+    "debug",
+]
+
+[lint]
+select = [
+    "E4",  # import 相关
+    "E7",  # 语句层错误
+    "E9",  # 运行时错误
+    "F",   # pyflakes
+    "I",   # import 排序
+    "UP",  # pyupgrade
+    "B",   # bugbear
+]
+ignore = [
+    "E501", # 行长由 formatter 处理
+    "B008", # 允许默认参数里调用函数（本项目未使用，但避免误报）
+]
+
+[lint.per-file-ignores]
+# Agent 侧模块靠 sys.path 注入相对导入，测试内联 import 是刻意为之
+"assets/agent/**" = ["E402"]
+"tools/**" = ["E402"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import numpy
-
 import pytest
 
 pytest.importorskip("maa", reason="需要 maafw 绑定（python tools/dev/setup.py）")

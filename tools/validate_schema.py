@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import sys
 import tempfile
-import argparse
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -14,12 +14,10 @@ try:
 except ImportError:  # tools/common 缺失时退化为系统环境
     pass
 from jsonschema import Draft7Validator, Draft202012Validator
-from jsonschema.exceptions import ValidationError
 
 try:
     from referencing import Registry, Resource
-    from referencing.jsonschema import DRAFT202012, DRAFT7
-    import referencing.retrieval
+    from referencing.jsonschema import DRAFT7, DRAFT202012
 
     HAS_REFERENCING = True
 except ImportError:
@@ -81,7 +79,7 @@ def strip_jsonc_comments(text):
 
 def load_jsonc(file_path):
     """加载 JSONC 文件"""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         content = f.read()
 
     # 移除注释
@@ -126,7 +124,7 @@ def find_line_number(file_path, json_path):
         return None
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         # 只查找第一层（顶层对象）
@@ -141,7 +139,7 @@ def find_line_number(file_path, json_path):
             if pattern.search(line):
                 return i + 1  # 行号从1开始
 
-    except:
+    except Exception:  # noqa: BLE001 - 行号定位失败不应影响校验流程
         pass
 
     return None
@@ -156,7 +154,7 @@ def validate_file(file_path, validator):
         if errors:
             print(f"\n❌ Validation failed for {file_path}:")
             print(f"   Found {len(errors)} error(s):")
-            for idx, error in enumerate(errors[:10], 1):
+            for error in errors[:10]:
                 path = "/" + "/".join(str(p) for p in error.path) if error.path else "/"
                 # print(f"   {idx}. {path}: {error.message}")
 
@@ -167,9 +165,7 @@ def validate_file(file_path, validator):
                         f"::error file={file_path},line={line_num},title=Schema Validation Error::{path}: {error.message}"
                     )
                 else:
-                    print(
-                        f"::error file={file_path},title=Schema Validation Error::{path}: {error.message}"
-                    )
+                    print(f"::error file={file_path},title=Schema Validation Error::{path}: {error.message}")
             return False
 
         print(f"✓ {file_path}")
@@ -194,9 +190,7 @@ def create_validator(schema, schema_store):
 
         # 添加所有 schema 到 registry
         for uri, schema_content in schema_store.items():
-            resource = Resource.from_contents(
-                schema_content, default_specification=spec
-            )
+            resource = Resource.from_contents(schema_content, default_specification=spec)
             registry = registry.with_resource(uri, resource)
 
         return ValidatorClass(schema, registry=registry)
@@ -217,9 +211,7 @@ def create_validator(schema, schema_store):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Validate JSON/JSONC files against JSON Schema"
-    )
+    parser = argparse.ArgumentParser(description="Validate JSON/JSONC files against JSON Schema")
     parser.add_argument(
         "--schema-dir",
         type=str,
@@ -334,9 +326,7 @@ def main():
     for resource_dir in args.resource_dirs:
         resource_path = Path(resource_dir)
         if not resource_path.exists():
-            print(
-                f"Warning: Resource directory {resource_dir} does not exist, skipping..."
-            )
+            print(f"Warning: Resource directory {resource_dir} does not exist, skipping...")
             continue
 
         for file_path in resource_path.rglob("*.json"):
@@ -367,9 +357,7 @@ def main():
                 if not validate_file(interface_path, interface_validator):
                     all_valid = False
             else:
-                print(
-                    f"Warning: Interface file {interface_file} does not exist, skipping..."
-                )
+                print(f"Warning: Interface file {interface_file} does not exist, skipping...")
 
     # 验证 task 文件
     if args.task_dirs:
@@ -385,9 +373,7 @@ def main():
             for task_dir in args.task_dirs:
                 task_path = Path(task_dir)
                 if not task_path.exists():
-                    print(
-                        f"Warning: Task directory {task_dir} does not exist, skipping..."
-                    )
+                    print(f"Warning: Task directory {task_dir} does not exist, skipping...")
                     continue
 
                 for file_path in task_path.rglob("*.json"):
@@ -398,9 +384,7 @@ def main():
                     if not validate_file(file_path, task_validator):
                         all_valid = False
         else:
-            print(
-                f"Warning: Task schema {task_schema_path} does not exist, skipping task validation..."
-            )
+            print(f"Warning: Task schema {task_schema_path} does not exist, skipping task validation...")
 
     if all_valid:
         print("\n✅ All validations passed!")

@@ -16,7 +16,7 @@ pip 分发的 maafw 里不一定带；`CustomController` 是纯 Python 抽象类
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy
 from maa.controller import CustomController
@@ -91,7 +91,7 @@ def load_images(paths: Sequence[str]) -> list[numpy.ndarray]:
     try:
         from PIL import Image
     except ImportError:
-        raise SystemExit("需要 Pillow 读取图片：python tools/dev/setup.py")
+        raise SystemExit("需要 Pillow 读取图片：python tools/dev/setup.py") from None
 
     images: list[numpy.ndarray] = []
     for path in paths:

@@ -43,7 +43,6 @@ from maa.tasker import Tasker  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from probe import probe_node  # noqa: E402
-from static_controller import load_images  # noqa: E402  (保证探测环境与 probe 一致)
 
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".bmp")
 SAFE_NAME = re.compile(r"[^A-Za-z0-9_.-]+")
@@ -137,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     controller_name, resource_name = interface_defaults(REPO_ROOT / "assets" / "interface.json")
     cases: list[dict] = []
     total = 0
-    for image_path, screen_name in zip(files, screen_names):
+    for image_path, screen_name in zip(files, screen_names, strict=True):
         hits: list = []
         for node in args.node:
             result = probe_node(resource, node, image_path, args.timeout)

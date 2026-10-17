@@ -142,7 +142,13 @@ def main(argv: list[str] | None = None) -> int:
     hits = sum(1 for item in results if item["hit"])
 
     if args.json:
-        print(json.dumps({"node": args.node, "hits": hits, "total": len(results), "results": results}, ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                {"node": args.node, "hits": hits, "total": len(results), "results": results},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
     else:
         for item in results:
             mark = "HIT " if item["hit"] else "miss"

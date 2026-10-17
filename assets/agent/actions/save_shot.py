@@ -15,12 +15,12 @@ import re
 from pathlib import Path
 
 import numpy
+from common.log import debug_dir, get_logger
+from common.params import ParamError, as_int, as_str
+from common.png import write_png
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from common.log import debug_dir, get_logger
-from common.png import write_png
-from common.params import ParamError, as_int, as_str
 
 REGISTERED = ["SaveShot"]
 ACTION_ID = "SaveShot"

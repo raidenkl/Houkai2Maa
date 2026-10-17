@@ -258,9 +258,13 @@ def collect_nodes(ctx: LintContext) -> None:
                 continue
             if name in ctx.nodes:
                 ctx.duplicate_files.setdefault(name, [ctx.nodes[name].file]).append(path)
-                ctx.error("E201", f"节点名重复，已存在于 {ctx.nodes[name].file.relative_to(REPO_ROOT)}", file=rel, node=name)
+                ctx.error(
+                    "E201", f"节点名重复，已存在于 {ctx.nodes[name].file.relative_to(REPO_ROOT)}", file=rel, node=name
+                )
                 continue
-            ctx.nodes[name] = Node(name=name, data=node_data, file=path, line=line_index.get(name, 0), business=business)
+            ctx.nodes[name] = Node(
+                name=name, data=node_data, file=path, line=line_index.get(name, 0), business=business
+            )
 
 
 def check_node_shape(ctx: LintContext, node: Node) -> None:
@@ -268,7 +272,13 @@ def check_node_shape(ctx: LintContext, node: Node) -> None:
     data = node.data
 
     if not NODE_NAME_RE.match(node.name):
-        ctx.error("E004", "节点名必须是 ASCII（字母/数字/下划线），内部节点用 `__` 前缀", file=rel, node=node.name, line=node.line)
+        ctx.error(
+            "E004",
+            "节点名必须是 ASCII（字母/数字/下划线），内部节点用 `__` 前缀",
+            file=rel,
+            node=node.name,
+            line=node.line,
+        )
     elif not node.name.startswith("__") and not PASCAL_CASE_RE.match(node.name):
         ctx.warn("W004", "节点名建议使用 PascalCase", file=rel, node=node.name, line=node.line)
 
@@ -278,7 +288,9 @@ def check_node_shape(ctx: LintContext, node: Node) -> None:
 
     for key in ("recognition", "action"):
         if isinstance(data.get(key), str):
-            ctx.error("E010", f"`{key}` 必须使用 v2 对象形式 `{{type, param}}`", file=rel, node=node.name, line=node.line)
+            ctx.error(
+                "E010", f"`{key}` 必须使用 v2 对象形式 `{{type, param}}`", file=rel, node=node.name, line=node.line
+            )
 
     for key, code in (("pre_delay", "E105"), ("post_delay", "E105")):
         value = data.get(key)
@@ -293,7 +305,9 @@ def check_node_shape(ctx: LintContext, node: Node) -> None:
 
     rate_limit = data.get("rate_limit")
     if isinstance(rate_limit, (int, float)) and rate_limit < MIN_RATE_LIMIT:
-        ctx.warn("W101", f"`rate_limit={rate_limit}ms` 过小，可能造成频繁截图", file=rel, node=node.name, line=node.line)
+        ctx.warn(
+            "W101", f"`rate_limit={rate_limit}ms` 过小，可能造成频繁截图", file=rel, node=node.name, line=node.line
+        )
 
 
 def check_coordinates(ctx: LintContext, node: Node) -> None:
@@ -420,7 +434,9 @@ def check_templates(ctx: LintContext, node: Node) -> None:
             continue
         width, height = size
         if width < MIN_TEMPLATE_SIDE or height < MIN_TEMPLATE_SIDE:
-            ctx.error("E108", f"模板过小（{width}x{height}）：`image/{template}`", file=rel, node=node.name, line=node.line)
+            ctx.error(
+                "E108", f"模板过小（{width}x{height}）：`image/{template}`", file=rel, node=node.name, line=node.line
+            )
         if width > MAX_TEMPLATE_WIDTH or height > MAX_TEMPLATE_HEIGHT:
             ctx.warn(
                 "W108",
@@ -458,7 +474,9 @@ def check_roi(ctx: LintContext, node: Node) -> None:
             )
 
 
-def check_custom_ids(ctx: LintContext, node: Node, registered_actions: set[str], registered_recognitions: set[str]) -> None:
+def check_custom_ids(
+    ctx: LintContext, node: Node, registered_actions: set[str], registered_recognitions: set[str]
+) -> None:
     rel = node.file.relative_to(REPO_ROOT).as_posix()
     recognition_param = v2_param(node.data, "recognition")
     if section_type(node.data, "recognition") == "Custom":
@@ -625,7 +643,9 @@ def load_interface(ctx: LintContext) -> set[str]:
                 )
         for resource in as_list(task.get("resource")):
             if resource not in resource_names:
-                ctx.error("E217", f"任务 `{task_name}` 引用了未声明的 resource `{resource}`", file="assets/interface.json")
+                ctx.error(
+                    "E217", f"任务 `{task_name}` 引用了未声明的 resource `{resource}`", file="assets/interface.json"
+                )
         for option in as_list(task.get("option")):
             if option not in option_names:
                 ctx.error("E218", f"任务 `{task_name}` 引用了未定义的 option `{option}`", file="assets/interface.json")
@@ -649,9 +669,7 @@ def load_interface(ctx: LintContext) -> set[str]:
                 )
 
     task_names = {
-        str(task.get("name"))
-        for task in as_list(interface.get("task"))
-        if isinstance(task, dict) and task.get("name")
+        str(task.get("name")) for task in as_list(interface.get("task")) if isinstance(task, dict) and task.get("name")
     } | {name for name in imported_task_names if name}
     pretask_names = {
         str(pretask.get("name"))

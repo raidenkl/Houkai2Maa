@@ -15,12 +15,7 @@ import numpy
 
 
 def _chunk(tag: bytes, payload: bytes) -> bytes:
-    return (
-        struct.pack(">I", len(payload))
-        + tag
-        + payload
-        + struct.pack(">I", zlib.crc32(tag + payload) & 0xFFFFFFFF)
-    )
+    return struct.pack(">I", len(payload)) + tag + payload + struct.pack(">I", zlib.crc32(tag + payload) & 0xFFFFFFFF)
 
 
 def encode_png(rgb: numpy.ndarray) -> bytes:
