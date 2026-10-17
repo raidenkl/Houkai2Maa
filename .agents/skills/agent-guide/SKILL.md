@@ -70,6 +70,8 @@ assets/agent/
 - 改流程：`context.override_next(argv.node_name, ["Xxx"])`（传 `[]` 即结束该链）；
 - 需要「当前在哪」时用 `SceneGuard` 思路：拿一个已有判定节点跑一次识别，别自己造判定；
 - 需要读 Client/资源信息：`common.context.client_context()`（读取 `PI_*` 环境变量）；
+  只有 **Agent 子进程**会拿到 `PI_*`（MFAAvalonia 实测），pretask 拿不到，别指望；
+  多设备地址可用自定义环境变量（本项目用 `MAAHOUKAI2_ADB_ADDRESS`）；
 - 日志用 `common.log.get_logger("action.xxx")`，会同时写 stdout 和 `debug/agent.log`。
 
 ## 单测与验证

@@ -59,6 +59,8 @@
 避免「分辨率不对 → 全量坐标偏移 → 识别不到」这种难查问题。
 
 - 脚本：`assets/agent/pretask/device_prepare.py`（`--image` 可离线校验单张截图）
+- 多设备用 `MAAHOUKAI2_ADB_ADDRESS=<地址>` 指定目标；未指定时只告警不阻断
+- MFAAvalonia 执行 pretask 时不注入 `PI_*`，控制器过滤靠 `pretask.controller` 字段
 - 判定逻辑：`assets/agent/common/frame.py`（纯函数，有单测）
 - 故障处理：见 [debugging.md](./debugging.md#预任务失败)
 

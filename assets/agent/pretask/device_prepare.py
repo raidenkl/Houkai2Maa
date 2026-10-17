@@ -15,9 +15,15 @@
 
 行为：
 
-* 通过 `PI_CONTROLLER` 判断当前控制器；非 Adb 直接跳过（退出 0）；
+* 先读 `MAAHOUKAI2_ADB_ADDRESS`（可选，多设备时用它指定目标）；
 * 找 ADB 设备 → 连接 → 截一张 720p 图 → 校验尺寸；
-* 符合 → 退出 0；不符合 → 打印具体改法并退出 1（Client 会中止启动）。
+* 只有**一台**设备时严格检查：不符合 → 退出 1（Client 会中止启动）；
+* 有多台设备且未指定地址时只告警、退出 0（避免误判无关设备，把启动卡死）；
+* 没有设备 → 退出 1 并提示先启动模拟器；
+* `PI_CONTROLLER`（Agent 才会注入）若存在且非 Adb，直接跳过。
+
+注意：MFAAvalonia 执行 pretask 时**不会**注入 `PI_*` 环境变量，
+控制器过滤由 interface 里的 `pretask.controller` 字段完成。
 
 也支持离线校验单张截图：`python agent/pretask/device_prepare.py --image x.png`
 """
@@ -85,10 +91,24 @@ def check_device() -> int:
         log("未找到 ADB 设备：请先启动模拟器或连接手机，并确认 adb devices 能看到设备")
         return 1
 
-    for index, device in enumerate(devices):
-        log(f"设备 [{index}] {device.name} {device.address}")
+    for index, item in enumerate(devices):
+        log(f"设备 [{index}] {item.name} {item.address}")
 
-    device = devices[0]
+    wanted = os.environ.get("MAAHOUKAI2_ADB_ADDRESS", "").strip()
+    if wanted:
+        matched = [item for item in devices if item.address == wanted]
+        if not matched:
+            log(f"MAAHOUKAI2_ADB_ADDRESS={wanted} 不在设备列表里，已发现：{', '.join(d.address for d in devices)}")
+            return 1
+        device = matched[0]
+    elif len(devices) > 1:
+        log(
+            f"检测到 {len(devices)} 台 ADB 设备，无法确定实际使用哪台；跳过严格检查。"
+            "如需强制检查，设置环境变量 MAAHOUKAI2_ADB_ADDRESS=<地址>"
+        )
+        return 0
+    else:
+        device = devices[0]
     log(f"检查设备 {device.name}（{device.address}）")
     controller = AdbController(adb_path=str(device.adb_path), address=device.address)
     controller.set_screenshot_target_short_side(SHORT_SIDE)
