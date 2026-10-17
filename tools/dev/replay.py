@@ -37,6 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from shared.bootstrap import REPO_ROOT, enable_local_lib  # noqa: E402
 from shared.jsonc import JsoncError, load_jsonc  # noqa: E402
 from shared.lists import is_subsequence  # noqa: E402
+from shared.recording import validate_recording  # noqa: E402
 
 enable_local_lib()
 
@@ -73,6 +74,14 @@ def run_case(case: dict, require: bool) -> str:
             return "fail"
         print(f"[SKIP] {message}")
         return "skip"
+
+    summary = validate_recording(recording)
+    if not summary.ok:
+        print(f"[FAIL] {name}：录制文件不可用")
+        print(summary.render())
+        return "fail"
+    if not summary.resolution_matches_base:
+        print(f"[warn] {name}：录制分辨率 {summary.resolution} 与 1280x720 基准不一致")
 
     resource = Resource()
     resource.post_bundle(REPO_ROOT / case.get("resource", "assets/resource")).wait()

@@ -27,6 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shared.bootstrap import REPO_ROOT, enable_local_lib  # noqa: E402
+from shared.recording import validate_recording  # noqa: E402
 
 enable_local_lib()
 
@@ -132,6 +133,10 @@ def main(argv: list[str] | None = None) -> int:
     for item in nodes:
         mark = "✓" if item["completed"] else "×"
         print(f"  {mark} {item['name']}")
+    summary = validate_recording(recording_path)
+    print(summary.render())
+    if not summary.ok:
+        print("录制文件不完整，回放可能失败；请检查上方提示后重录。", file=sys.stderr)
     print(f"录制文件：{recording_path.relative_to(REPO_ROOT)}")
     print(f"下一步：python tools/dev/replay.py --case {args.case}")
     return 0 if status == "succeeded" else 1

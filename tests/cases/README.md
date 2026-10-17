@@ -30,6 +30,9 @@ python tools/dev/record.py --case farm-normal --entry FarmStageEntry
 - `farm-normal-Screenshot/` 截图帧
 - `farm-normal.summary.json` 本次执行摘要（节点序列、结果）
 
+`replay.py` 回放前会用 `tools/shared/recording.py` 校验录制：必须有 `connect`
+（带分辨率）与至少一条 `screencap`，引用的截图必须存在；分辨率不是 1280×720 会告警。
+
 录制文件体积请控制在 50MB 以内（只保留关键分支即可），
 否则请先裁剪截图或改用 `tests/node-cases` 做节点级测试。
 
