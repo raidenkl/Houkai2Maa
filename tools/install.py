@@ -154,6 +154,48 @@ def install_agent():
     )
 
 
+def verify_install():
+    """安装后自检：interface 里引用的 import / pretask / agent 脚本是否都在包内。"""
+
+    interface_file = install_path / "interface.json"
+    if not interface_file.is_file():
+        raise SystemExit("自检失败：安装目录缺少 interface.json")
+
+    from shared.jsonc import load_jsonc
+
+    interface = load_jsonc(interface_file)
+    missing: list[str] = []
+
+    for item in interface.get("import") or []:
+        if not (install_path / item).is_file():
+            missing.append(f"import: {item}")
+
+    pretask = interface.get("pretask")
+    pretasks = pretask if isinstance(pretask, list) else ([pretask] if pretask else [])
+    for item in pretasks:
+        if not isinstance(item, dict):
+            continue
+        for arg in item.get("args") or []:
+            if isinstance(arg, str) and arg.startswith("./") and not (install_path / arg).is_file():
+                missing.append(f"pretask args: {arg}")
+
+    agent = interface.get("agent")
+    agents = agent if isinstance(agent, list) else ([agent] if agent else [])
+    for item in agents:
+        if not isinstance(item, dict):
+            continue
+        for arg in item.get("child_args") or []:
+            if isinstance(arg, str) and arg.startswith("./") and not (install_path / arg).is_file():
+                missing.append(f"agent args: {arg}")
+
+    if missing:
+        for entry in missing:
+            print(f"  [missing] {entry}")
+        raise SystemExit("安装自检失败：存在引用不到的路径")
+
+    print("安装自检通过：import / pretask / agent 路径均可解析")
+
+
 def install_tasks():
     """interface.json 的 `import` 片段（tasks/）必须随安装包一起分发。"""
 
@@ -173,5 +215,6 @@ if __name__ == "__main__":
     install_chores()
     install_agent()
     install_tasks()
+    verify_install()
 
     print(f"Install to {install_path} successfully.")

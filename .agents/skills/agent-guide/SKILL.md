@@ -74,6 +74,22 @@ assets/agent/
   多设备地址可用自定义环境变量（本项目用 `MAAHOUKAI2_ADB_ADDRESS`）；
 - 日志用 `common.log.get_logger("action.xxx")`，会同时写 stdout 和 `debug/agent.log`。
 
+## 重要限制：不要在同一个进程里混用 Agent 与框架 API
+
+导入 `maa.agent.agent_server` 会把已加载的 MaaFramework 库替换成
+`MaaAgentServerNotImpl`，之后再 `Resource()` / `Tasker()` 会直接失败：
+
+```
+[MaaAgentServerNotImpl.cpp] MaaResourceCreate() MaaAgentServer Not implement this API
+Failed to create resource.
+```
+
+因此：
+
+- Agent 里不要顺便驱动 Tasker（用 `context` 提供的接口）；
+- 测试/工具（`probe.py`/`dryrun.py`/`record.py`）不要 import `assets/agent/*`；
+- 需要验证注册时用**子进程**（见 `assets/agent/tests/test_entry.py`）。
+
 ## 单测与验证
 
 ```bash
