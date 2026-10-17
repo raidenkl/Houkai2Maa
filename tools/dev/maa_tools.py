@@ -38,9 +38,20 @@ def main(argv: list[str]) -> int:
     env = dict(os.environ)
     env.setdefault("npm_config_cache", str(REPO_ROOT / ".npm-cache"))
     env.setdefault("npm_config_update_notifier", "false")
+    env.setdefault("npm_config_fetch_retries", "5")
+    env.setdefault("npm_config_fetch_retry_mintimeout", "2000")
 
-    completed = subprocess.run([str(binary), *argv], cwd=REPO_ROOT, env=env)
-    return completed.returncode
+    # 首次运行需要从 npm 拉取 MaaFramework 运行时，偶发网络失败会直接返回非零；
+    # 这里重试两次，并在日志里说明，避免让一次抖动变成「构建失败」。
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        completed = subprocess.run([str(binary), *argv], cwd=REPO_ROOT, env=env)
+        if completed.returncode == 0:
+            return 0
+        if attempt == attempts:
+            return completed.returncode
+        print(f"[maa-tools] 第 {attempt} 次执行失败（可能为网络抖动），重试 …", file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

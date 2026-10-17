@@ -12,7 +12,8 @@ import type {FullConfig} from '@nekosu/maa-tools'
  */
 const config: FullConfig = {
     cwd: import.meta.dirname,
-    maaVersion: 'latest',
+    // 与 tools/dev/setup.py 中 maafw 的主版本保持一致，"latest" 会跟随 beta 漂移
+    maaVersion: '5.14.3',
     maaCache: '.maa-tools',
     maaStdoutLevel: 'Fatal',
     interfacePath: 'assets/interface.json',

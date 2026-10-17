@@ -72,6 +72,8 @@ uvx maafw-cli --json ocr                        # 屏幕文字 + 坐标 + 自动
 uvx maafw-cli --json reco TemplateMatch template=双倍.png threshold=0.8
 uvx maafw-cli click e3                          # 点第 3 个 OCR 结果
 uvx maafw-cli action custom SaveShot --raw '{"tag":"probe"}'
+python tools/dev/snapshot.py                     # 截图 + 全屏 OCR + 标注图（无需 uv）
+python tools/dev/crop.py --screen <png> --box x,y,w,h --out 30_daily/<Task>/xxx.png --node <Node>
 python tools/dev/record.py --case <case> --entry <Entry>
 python tools/dev/replay.py --case <case>
 ```
@@ -81,6 +83,7 @@ python tools/dev/replay.py --case <case>
 1. **取事实**：`maafw-cli` 截图/OCR，把入口坐标、按钮文案、界面层级记到
    `docs/zh_cn/develop/game_facts.md`。**不要凭猜测写坐标或 OCR 文案。**
 2. **裁模板**：从 720p 截图裁 `assets/resource/image/30_daily/<Task>/xxx.png`；
+   用 `tools/dev/crop.py` 一步完成裁剪 + ROI 计算 + 节点片段生成；
    透明/异形按钮用 green_mask（可用 Auto Green Background 生成绿幕）。
 3. **写节点**：在 `30_daily/<Task>.json` 新建文件，节点名用 `<Task>Xxx`；
    先写「界面判定」节点，再写「操作」节点，操作后必须能识别到下一个界面。
@@ -92,6 +95,8 @@ python tools/dev/replay.py --case <case>
    `assets/interface.json` 的 `import` 列表，设置 `group`。
 7. **验证**：`npm run lint && npm run test && npm run replay`；
    有条件时 `tools/dev/record.py` 录一条用例，提交到 `tests/cases`。
+
+流程描述格式见 `docs/zh_cn/develop/flow_template.md`，需求方按模板描述一次即可转成节点。
 
 ## 变更纪律
 

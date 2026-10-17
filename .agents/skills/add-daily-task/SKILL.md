@@ -31,6 +31,15 @@ uvx maafw-cli screenshot -o debug/probe/entry.png
 
 ## 2. 裁模板
 
+```bash
+python tools/dev/crop.py \
+    --screen debug/probe/xxxx-screen.png \
+    --box 980,560,120,60 \
+    --out 30_daily/<TaskName>/button.png \
+    --node <TaskName>Button --pad 20
+```
+
+- 工具会校验截图是 1280×720，裁剪模板并打印带 ROI 的节点片段，直接粘进 pipeline；
 - 放在 `assets/resource/image/30_daily/<TaskName>/` 下，文件名 ASCII；
 - 优先裁「文字旁边独有的图形元素」，避免裁大块渐变背景；
 - 半透明/异形按钮：生成绿幕图并在节点里开 `green_mask: true`。

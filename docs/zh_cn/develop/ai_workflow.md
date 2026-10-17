@@ -24,7 +24,14 @@ uvx maafw-cli --json ocr                    # 屏幕文字 + 坐标 + 自动截�
 uvx maafw-cli --json reco TemplateMatch template=双倍.png threshold=0.8
 ```
 
+没有 `uvx` 的环境用仓库自带脚本：
+
+```bash
+python tools/dev/snapshot.py --json   # 720p 截图 + OCR + 标注图，输出文字与坐标
+```
+
 结论写进 `docs/zh_cn/develop/game_facts.md`；没有实测就不要写坐标与文案。
+裁模板用 `tools/dev/crop.py`（会校验 720p 并直接生成节点片段）。
 
 ### 2. 改（受约束）
 
