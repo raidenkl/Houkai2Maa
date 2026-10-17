@@ -124,6 +124,12 @@ npm run check      # 框架语义（任务树、图片）
 npm run test       # Agent 单测（如果改了 agent）
 ```
 
+先用手上的截图做离线流程验证（无需设备）：
+
+```bash
+python tools/dev/dryrun.py --images docs/zh_cn/develop/screens/<Task> --entry <Task>Entry
+```
+
 有设备时再跑一遍真机：
 
 ```bash

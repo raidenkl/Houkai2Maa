@@ -1,7 +1,17 @@
+import argparse
 from pathlib import Path
 
 import shutil
 import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+try:
+    from shared.bootstrap import enable_local_lib
+
+    enable_local_lib()
+except ImportError:  # tools/shared 缺失时退化为系统环境
+    pass
 
 try:
     import jsonc
@@ -16,17 +26,19 @@ from configure import configure_ocr_model
 
 
 working_dir = Path(__file__).parent.parent.resolve()
-install_path = working_dir / Path("install")
-version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
 
-# the first parameter is self name
-if sys.argv.__len__() < 4:
-    print("Usage: python install.py <version> <os> <arch>")
-    print("Example: python install.py v1.0.0 win x86_64")
-    sys.exit(1)
+parser = argparse.ArgumentParser(description="把资源/Agent/依赖组装成可分发的 install 目录")
+parser.add_argument("version", help="版本号，例如 v1.0.0")
+parser.add_argument("os_name", choices=["win", "macos", "linux", "android"], help="目标系统")
+parser.add_argument("arch", choices=["x86_64", "aarch64"], help="目标架构")
+parser.add_argument("--install-dir", default=str(working_dir / "install"), help="安装输出目录（默认 install/）")
+parser.add_argument("--no-deps", action="store_true", help="跳过 MaaFramework 运行时拷贝（仅本地验证打包结构）")
+args = parser.parse_args()
 
-os_name = sys.argv[2]
-arch = sys.argv[3]
+install_path = Path(args.install_dir).resolve()
+version = args.version
+os_name = args.os_name
+arch = args.arch
 
 
 def get_dotnet_platform_tag():
@@ -152,7 +164,9 @@ def install_tasks():
 
 
 if __name__ == "__main__":
-    install_deps()
+    install_path.mkdir(parents=True, exist_ok=True)
+    if not args.no_deps:
+        install_deps()
     install_resource()
     install_chores()
     install_agent()

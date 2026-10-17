@@ -72,6 +72,7 @@ def _load_allowlist() -> dict[str, dict[str, list[str]]]:
 
 ALLOWLIST = _load_allowlist()
 DEPRECATED_FIELDS = ("is_sub", "timeout_next", "package_doc", "template_doc")
+POINT_FIELDS = ("target", "begin", "end", "target_offset", "begin_offset", "end_offset")
 
 NODE_NAME_RE = re.compile(r"^(?:__)?[A-Za-z][A-Za-z0-9_]*$")
 PASCAL_CASE_RE = re.compile(r"^[A-Z][A-Za-z0-9_]*$")
@@ -295,6 +296,110 @@ def check_node_shape(ctx: LintContext, node: Node) -> None:
         ctx.warn("W101", f"`rate_limit={rate_limit}ms` 过小，可能造成频繁截图", file=rel, node=node.name, line=node.line)
 
 
+def check_coordinates(ctx: LintContext, node: Node) -> None:
+    """`target` / `begin` / `end` 等坐标字段必须在 720p 基准内。"""
+
+    rel = node.file.relative_to(REPO_ROOT).as_posix()
+    param = v2_param(node.data, "action")
+    for field_name in POINT_FIELDS:
+        value = param.get(field_name, node.data.get(field_name))
+        if value is None or isinstance(value, (bool, str)):
+            continue
+        candidates = value if isinstance(value, list) and value and isinstance(value[0], list) else [value]
+        for candidate in candidates:
+            if not isinstance(candidate, list) or len(candidate) not in (2, 4):
+                ctx.error(
+                    "E111",
+                    f"`{field_name}` 必须是 [x, y] 或 [x, y, w, h]：{candidate}",
+                    file=rel,
+                    node=node.name,
+                    line=node.line,
+                )
+                continue
+            if not all(isinstance(item, int) for item in candidate):
+                ctx.error("E111", f"`{field_name}` 必须全为整数：{candidate}", file=rel, node=node.name, line=node.line)
+                continue
+            x, y = candidate[0], candidate[1]
+            width = candidate[2] if len(candidate) == 4 else 1
+            height = candidate[3] if len(candidate) == 4 else 1
+            if x < 0 or y < 0 or x + width > BASE_WIDTH or y + height > BASE_HEIGHT:
+                ctx.error(
+                    "E111",
+                    f"`{field_name}` 超出 {BASE_WIDTH}x{BASE_HEIGHT} 基准：{candidate}",
+                    file=rel,
+                    node=node.name,
+                    line=node.line,
+                )
+
+
+def check_action_params(ctx: LintContext, node: Node) -> None:
+    """动作必填参数与类型检查。"""
+
+    rel = node.file.relative_to(REPO_ROOT).as_posix()
+    action_type = section_type(node.data, "action")
+    param = v2_param(node.data, "action")
+
+    if action_type in ("StartApp", "StopApp"):
+        package = param.get("package", node.data.get("package"))
+        if not isinstance(package, str) or not package.strip():
+            ctx.error("E216", f"`{action_type}` 需要非空 `package`", file=rel, node=node.name, line=node.line)
+    if action_type == "Shell":
+        cmd = param.get("cmd", node.data.get("cmd"))
+        if not isinstance(cmd, str) or not cmd.strip():
+            ctx.error("E216", "`Shell` 需要非空 `cmd`", file=rel, node=node.name, line=node.line)
+    if action_type == "Custom":
+        if not isinstance(param.get("custom_action"), str):
+            ctx.error("E204", "Custom 动作缺少字符串型 `custom_action`", file=rel, node=node.name, line=node.line)
+
+    max_hit = node.data.get("max_hit")
+    if max_hit is not None and (not isinstance(max_hit, int) or isinstance(max_hit, bool) or max_hit <= 0):
+        ctx.error("E214", f"`max_hit` 必须是正整数，实际 {max_hit!r}", file=rel, node=node.name, line=node.line)
+    enabled = node.data.get("enabled")
+    if enabled is not None and not isinstance(enabled, bool):
+        ctx.error("E214", f"`enabled` 必须是布尔值，实际 {enabled!r}", file=rel, node=node.name, line=node.line)
+
+
+def check_self_loop(ctx: LintContext, node: Node) -> None:
+    """节点在 next/on_error 里引用自己时必须配 `max_hit`，否则可能无限循环。"""
+
+    rel = node.file.relative_to(REPO_ROOT).as_posix()
+    for field_name in ("next", "on_error"):
+        for target, _ in next_entries(node.data.get(field_name)):
+            if target == node.name and not node.data.get("max_hit"):
+                ctx.warn(
+                    "W211",
+                    f"`{field_name}` 引用了自身且没有 `max_hit`，存在死循环风险",
+                    file=rel,
+                    node=node.name,
+                    line=node.line,
+                )
+
+
+def check_ocr_expected(ctx: LintContext, node: Node) -> None:
+    """OCR 的 `expected` 质量：过短会误命中。"""
+
+    if section_type(node.data, "recognition") != "OCR":
+        return
+    rel = node.file.relative_to(REPO_ROOT).as_posix()
+    param = v2_param(node.data, "recognition")
+    expected = param.get("expected", node.data.get("expected"))
+    if expected is None:
+        ctx.warn("W212", "OCR 未设置 `expected`，会匹配任意文本", file=rel, node=node.name, line=node.line)
+        return
+    for item in as_list(expected):
+        if not isinstance(item, str):
+            ctx.error("W212", f"OCR `expected` 含非字符串项 {item!r}", file=rel, node=node.name, line=node.line)
+            continue
+        if len(item.strip()) <= 1:
+            ctx.warn(
+                "W213",
+                f"OCR `expected` 过短（{item!r}），建议写完整按钮文案",
+                file=rel,
+                node=node.name,
+                line=node.line,
+            )
+
+
 def check_templates(ctx: LintContext, node: Node) -> None:
     rel = node.file.relative_to(REPO_ROOT).as_posix()
     param = v2_param(node.data, "recognition")
@@ -467,6 +572,19 @@ def load_interface(ctx: LintContext) -> set[str]:
         if name not in ctx.nodes:
             ctx.error("E206", f"interface 任务 entry 指向不存在的节点 `{name}`", file="assets/interface.json")
 
+    for controller in as_list(interface.get("controller")):
+        if not isinstance(controller, dict):
+            continue
+        if str(controller.get("type", "")).lower() != "adb":
+            continue
+        short_side = controller.get("display_short_side")
+        if short_side != BASE_HEIGHT:
+            ctx.error(
+                "E110",
+                f"Adb 控制器 `{controller.get('name')}` 的 display_short_side 必须是 {BASE_HEIGHT}（当前 {short_side!r}）",
+                file="assets/interface.json",
+            )
+
     for option_name, option in (interface.get("option") or {}).items():
         if not isinstance(option, dict):
             continue
@@ -541,6 +659,10 @@ def run_lint() -> LintContext:
         check_node_shape(ctx, node)
         check_templates(ctx, node)
         check_roi(ctx, node)
+        check_coordinates(ctx, node)
+        check_action_params(ctx, node)
+        check_self_loop(ctx, node)
+        check_ocr_expected(ctx, node)
         check_custom_ids(ctx, node, registered_actions, registered_recognitions)
         check_business_entry(ctx, node)
 

@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-"""设备截图 + 全屏 OCR，产出「AI 能读懂」的事实采集包。
+"""截图 + 全屏 OCR，产出「AI 能读懂」的事实采集包。
 
-不用 `uvx maafw-cli` 也能跑（直接走仓库内 `.pylib` 的 maafw 绑定），
-适合在没有 uv、或需要离线批量采集的环境。
+两种输入：
+
+* **设备**：连接 ADB，截 720p 图后识别（需要模拟器/手机）；
+* **本地图片**：`--image x.png`，对已有截图识别（无需设备）。
+  非 1280×720 的图片会先缩放到 720p，所以输出的坐标始终是**基准坐标**。
 
 产物（默认 `debug/probe/`）：
 
-    <ts>-screen.png   720p 原始截图
-    <ts>-ocr.png      标注图（画框 + 序号），方便人眼对照
-    <ts>-ocr.json     [{"index":1,"text":"签到","box":[x,y,w,h],"score":0.98}, ...]
+    <name>-screen.png   720p 截图（原图或缩放后）
+    <name>-ocr.png      标注图（画框 + 序号）
+    <name>-ocr.json     [{"index":1,"text":"签到","box":[x,y,w,h],"score":0.98}, ...]
 
 用法：
 
-    python tools/dev/snapshot.py                       # 用第一台 ADB 设备
+    python tools/dev/snapshot.py                          # 第一台 ADB 设备
     python tools/dev/snapshot.py --address 127.0.0.1:16384
-    python tools/dev/snapshot.py --roi 0,0,640,720     # 只识别左半屏
-    python tools/dev/snapshot.py --json                # 结果输出为 JSON
+    python tools/dev/snapshot.py --image shots/home.png   # 离线分析一张截图
+    python tools/dev/snapshot.py --roi 0,0,640,720        # 只识别左半屏
+    python tools/dev/snapshot.py --json                   # JSON 输出
 """
 
 from __future__ import annotations
@@ -33,37 +37,70 @@ from shared.bootstrap import REPO_ROOT, enable_local_lib  # noqa: E402
 enable_local_lib()
 
 import numpy  # noqa: E402
-from maa.controller import AdbController  # noqa: E402
+from maa.define import LoggingLevelEnum  # noqa: E402
 from maa.pipeline import JOCR, JRecognitionType  # noqa: E402
 from maa.resource import Resource  # noqa: E402
 from maa.tasker import Tasker  # noqa: E402
-from maa.toolkit import Toolkit  # noqa: E402
 
 sys.path.insert(0, str(REPO_ROOT / "agent"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from common.png import write_png  # noqa: E402
+from static_controller import StaticImageController  # noqa: E402
 
 SHORT_SIDE = 720
 BASE_SIZE = (1280, 720)
 
 
-def pick_device(address: str | None, adb_path: str | None) -> tuple[str, str]:
+def load_image(path: Path) -> numpy.ndarray:
+    """用 Pillow 读图并缩放到 1280×720，返回 BGR uint8 数组（MaaFW 约定）。"""
+
+    try:
+        from PIL import Image
+    except ImportError:
+        raise SystemExit("离线分析需要 Pillow：python tools/dev/setup.py")
+
+    with Image.open(path) as source:
+        image = source.convert("RGB")
+        if image.size != BASE_SIZE:
+            print(f"[info] 输入 {image.size[0]}x{image.size[1]}，已缩放到 1280x720", file=sys.stderr)
+            image = image.resize(BASE_SIZE, Image.LANCZOS)
+        rgb = numpy.asarray(image)
+    return rgb[:, :, ::-1].copy()
+
+
+def capture_from_device(address: str | None, adb_path: str | None) -> numpy.ndarray:
+    try:
+        from maa.controller import AdbController
+        from maa.toolkit import Toolkit
+    except ImportError as error:
+        raise SystemExit(f"缺少 maafw 依赖：{error}")
+
     if address and adb_path:
-        return adb_path, address
+        adb, target = adb_path, address
+    else:
+        devices = Toolkit.find_adb_devices()
+        if not devices:
+            raise SystemExit("未找到 ADB 设备：请启动模拟器/连接手机，或用 --image 分析本地截图。")
+        if address:
+            matched = [device for device in devices if device.address == address]
+            if not matched:
+                raise SystemExit(f"没有地址为 {address} 的设备，可用：{', '.join(d.address for d in devices)}")
+            device = matched[0]
+        else:
+            for index, item in enumerate(devices):
+                print(f"  [{index}] {item.name} {item.address}", file=sys.stderr)
+            device = devices[0]
+        adb, target = str(device.adb_path), device.address
 
-    devices = Toolkit.find_adb_devices()
-    if not devices:
-        raise SystemExit("未找到 ADB 设备：请启动模拟器 / 连接手机后重试，或用 --adb/--address 指定。")
-
-    if address:
-        for device in devices:
-            if device.address == address:
-                return str(device.adb_path), device.address
-        raise SystemExit("没有地址为 %s 的设备，可用：%s" % (address, ", ".join(d.address for d in devices)))
-
-    for index, device in enumerate(devices):
-        print(f"  [{index}] {device.name} {device.address}", file=sys.stderr)
-    device = devices[0]
-    return str(device.adb_path), device.address
+    controller = AdbController(adb_path=adb, address=target)
+    controller.set_screenshot_target_short_side(SHORT_SIDE)
+    controller.post_connection().wait()
+    print(f"截图：{target}", file=sys.stderr)
+    image = controller.post_screencap().wait().get()
+    if image is None:
+        raise SystemExit("截图失败")
+    return image
 
 
 def draw_boxes(image: numpy.ndarray, entries: list[dict]) -> numpy.ndarray:
@@ -85,15 +122,24 @@ def draw_boxes(image: numpy.ndarray, entries: list[dict]) -> numpy.ndarray:
                 canvas[y0 : y1 + 1, x0 + thickness] = color
             if x1 - thickness >= 0:
                 canvas[y0 : y1 + 1, x1 - thickness] = color
-        # 序号：在左上角画 3x5 的实心小块，避免依赖字体
         label_x = min(width - 4, x0 + 2)
         label_y = min(height - 8, max(0, y0 - 8))
         canvas[label_y : label_y + 6, label_x : label_x + 3 * min(3, len(str(entry["index"])))] = color
     return canvas
 
 
+def parse_roi(text: str | None) -> tuple[int, int, int, int]:
+    if not text:
+        return (0, 0, 0, 0)
+    parts = [part.strip() for part in text.split(",")]
+    if len(parts) != 4 or not all(part.lstrip("-").isdigit() for part in parts):
+        raise SystemExit("--roi 格式应为 x,y,w,h")
+    return tuple(int(part) for part in parts)  # type: ignore[return-value]
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="设备截图 + 全屏 OCR（事实采集）")
+    parser = argparse.ArgumentParser(description="截图 + 全屏 OCR（事实采集）")
+    parser.add_argument("--image", help="离线分析本地图片（缩放至 720p），不连接设备")
     parser.add_argument("--address", help="ADB 设备地址，如 127.0.0.1:16384")
     parser.add_argument("--adb", help="adb 可执行文件路径")
     parser.add_argument("--roi", help="OCR 区域 x,y,w,h（默认全屏）")
@@ -101,40 +147,45 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", help="把结果以 JSON 打印到 stdout")
     args = parser.parse_args(argv)
 
-    roi = (0, 0, 0, 0)
-    if args.roi:
-        parts = [part.strip() for part in args.roi.split(",")]
-        if len(parts) != 4 or not all(part.lstrip("-").isdigit() for part in parts):
-            raise SystemExit("--roi 格式应为 x,y,w,h")
-        roi = tuple(int(part) for part in parts)  # type: ignore[assignment]
+    roi = parse_roi(args.roi)
 
     resource = Resource()
     resource.post_bundle(REPO_ROOT / "assets" / "resource").wait()
     if not resource.loaded:
         raise SystemExit("资源加载失败：请先执行 python tools/dev/setup.py（准备 OCR 模型）")
 
-    adb_path, address = pick_device(args.address, args.adb)
-    controller = AdbController(adb_path=adb_path, address=address)
-    controller.set_screenshot_target_short_side(SHORT_SIDE)
-    controller.post_connection().wait()
+    if args.image:
+        source = Path(args.image)
+        if not source.is_absolute():
+            source = REPO_ROOT / source
+        if not source.is_file():
+            raise SystemExit(f"图片不存在：{source}")
+        image = load_image(source)
+        stem = f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-{source.stem}"
+    else:
+        image = capture_from_device(args.address, args.adb)
+        stem = datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    tasker = Tasker()
-    tasker.bind(resource, controller)
-
-    print(f"截图：{address}", file=sys.stderr)
-    image = controller.post_screencap().wait().get()
-    if image is None:
-        raise SystemExit("截图失败")
     height, width = image.shape[:2]
     if (width, height) != BASE_SIZE:
-        print(
-            f"[warn] 截图尺寸 {width}x{height} 与基准 1280x720 不一致，"
-            "请把模拟器分辨率设为 1280x720（16:9）后重新采集",
-            file=sys.stderr,
-        )
+        print(f"[warn] 截图尺寸 {width}x{height} 不是 1280x720，坐标可能偏移", file=sys.stderr)
 
     print("识别文字 ...", file=sys.stderr)
-    detail = tasker.post_recognition(JRecognitionType.OCR, JOCR(roi=roi), image).wait().get()
+    Tasker.set_stdout_level(LoggingLevelEnum.Fatal)
+    tasker = Tasker()
+    # 识别需要 Tasker 绑定资源与控制器；离线分析时把图片本身当作「设备」
+    if args.image:
+        controller = StaticImageController([image], cycle=False)
+        controller.post_connection().wait()
+        tasker.bind(resource, controller)
+    task_detail = tasker.post_recognition(JRecognitionType.OCR, JOCR(roi=roi), image).wait().get()
+    detail = None
+    if task_detail is not None:
+        for node in task_detail.nodes:
+            if node.recognition is not None:
+                detail = node.recognition
+                break
+
     entries: list[dict] = []
     if detail is not None:
         for index, result in enumerate(detail.filtered_results or detail.all_results, start=1):
@@ -143,21 +194,25 @@ def main(argv: list[str] | None = None) -> int:
             score = getattr(result, "score", 0.0)
             if box is None or not text:
                 continue
+            coords = (
+                [box.x, box.y, box.w, box.h]
+                if hasattr(box, "x")
+                else [int(value) for value in (box[0], box[1], box[2], box[3])]
+            )
             entries.append(
                 {
                     "index": index,
                     "text": text,
-                    "box": [box.x, box.y, box.w, box.h],
+                    "box": coords,
                     "score": round(float(score), 4),
                 }
             )
 
     out_dir = REPO_ROOT / args.out
     out_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    screen_path = out_dir / f"{stamp}-screen.png"
-    ocr_png_path = out_dir / f"{stamp}-ocr.png"
-    ocr_json_path = out_dir / f"{stamp}-ocr.json"
+    screen_path = out_dir / f"{stem}-screen.png"
+    ocr_png_path = out_dir / f"{stem}-ocr.png"
+    ocr_json_path = out_dir / f"{stem}-ocr.json"
 
     write_png(screen_path, image)
     write_png(ocr_png_path, draw_boxes(image[:, :, ::-1], entries), bgr=False)

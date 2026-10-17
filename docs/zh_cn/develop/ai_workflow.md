@@ -33,6 +33,12 @@ python tools/dev/snapshot.py --json   # 720p 截图 + OCR + 标注图，输出�
 结论写进 `docs/zh_cn/develop/game_facts.md`；没有实测就不要写坐标与文案。
 裁模板用 `tools/dev/crop.py`（会校验 720p 并直接生成节点片段）。
 
+对已有截图做离线 OCR（不需要设备）：
+
+```bash
+python tools/dev/snapshot.py --image shots/signin.png --json
+```
+
 ### 2. 改（受约束）
 
 - 只改这些位置：`assets/resource/pipeline/**`、`assets/resource/image/**`、

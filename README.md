@@ -28,6 +28,10 @@ npm run verify
 # 3. 真机联调（示例）
 uvx maafw-cli connect adb 127.0.0.1:16384
 uvx maafw-cli --json ocr
+
+# 没有设备时的离线手段
+python tools/dev/snapshot.py --image shots/home.png        # 对截图做 OCR，拿 720p 坐标
+python tools/dev/dryrun.py --images shots/ --entry <Entry> # 用截图跑流程结构
 ```
 
 发布包：使用 [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia) 打开

@@ -55,3 +55,21 @@ def test_record_helpers() -> None:
     assert (progress.battles, progress.failures) == (1, 1)
     progress.reset()
     assert (progress.battles, progress.failures) == (0, 0)
+
+
+def test_failure_limit_reached_by_farm_fail_semantics() -> None:
+    """FarmFail 语义：累计失败达到 max_failures 即放弃，且优先于其它条件。"""
+
+    plan = FarmPlan(max_failures=2)
+    progress = FarmProgress()
+    progress.record_failure()
+    assert decide_stop(plan, progress)[0] is False
+    progress.record_failure()
+    assert decide_stop(plan, progress) == (True, STOP_FAILURE_LIMIT)
+    assert decide_stop(plan, progress, stamina_insufficient=True) == (True, STOP_FAILURE_LIMIT)
+
+
+def test_zero_failure_limit_disables_guard() -> None:
+    plan = FarmPlan(max_failures=0)
+    progress = FarmProgress(failures=99)
+    assert decide_stop(plan, progress)[0] is False

@@ -36,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shared.bootstrap import REPO_ROOT, enable_local_lib  # noqa: E402
 from shared.jsonc import JsoncError, load_jsonc  # noqa: E402
+from shared.lists import is_subsequence  # noqa: E402
 
 enable_local_lib()
 
@@ -56,11 +57,6 @@ def load_cases(cases_dir: Path) -> list[dict]:
         data.setdefault("_path", str(path.relative_to(REPO_ROOT)))
         cases.append(data)
     return cases
-
-
-def is_subsequence(expected: list[str], actual: list[str]) -> bool:
-    iterator = iter(actual)
-    return all(node in iterator for node in expected)
 
 
 def run_case(case: dict, require: bool) -> str:

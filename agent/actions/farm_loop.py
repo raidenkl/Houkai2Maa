@@ -32,9 +32,10 @@ from common.log import get_logger
 from common.params import ParamError, as_bool, as_int
 from common.state import FarmPlan, FarmProgress, decide_stop
 
-REGISTERED = ["FarmLoop", "FarmReset"]
+REGISTERED = ["FarmLoop", "FarmReset", "FarmFail"]
 LOOP_ACTION = "FarmLoop"
 RESET_ACTION = "FarmReset"
+FAIL_ACTION = "FarmFail"
 
 logger = get_logger("action.farm_loop")
 
@@ -57,6 +58,12 @@ def _parse_plan(raw: str) -> FarmPlan:
 
 def reset() -> None:
     _progress.reset()
+
+
+def progress() -> FarmProgress:
+    """供测试与调试读取当前进度。"""
+
+    return _progress
 
 
 @AgentServer.custom_action(LOOP_ACTION)
@@ -91,4 +98,60 @@ class FarmReset(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
         reset()
         logger.info("FarmReset：循环计数已清零（节点 %s）", argv.node_name)
+        return True
+
+
+@AgentServer.custom_action(FAIL_ACTION)
+class FarmFail(CustomAction):
+    """记录一次失败，并在超过上限时结束循环。
+
+    pipeline 用法（失败分支上挂本动作，正常重试仍由 JSON 的 next 决定）：
+
+        "FarmBattleFailed": {
+            "action": {
+                "type": "Custom",
+                "param": {
+                    "custom_action": "FarmFail",
+                    "custom_action_param": {"max_failures": 2, "on_give_up": []}
+                }
+            },
+            "next": ["FarmRetry"]
+        }
+
+    * 未达上限：`next` 保持原样，流程按 JSON 继续重试；
+    * 达到上限：`override_next(node, on_give_up)`，若 `on_give_up` 为空则结束该任务链。
+    """
+
+    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        try:
+            params = json.loads(argv.custom_action_param) if argv.custom_action_param else {}
+        except json.JSONDecodeError as error:
+            logger.error("FarmFail 参数不是合法 JSON：%s", error)
+            return False
+        if not isinstance(params, dict):
+            logger.error("FarmFail 参数必须是 JSON 对象")
+            return False
+
+        try:
+            max_failures = as_int(params, "max_failures", 2, minimum=0)
+            on_give_up = params.get("on_give_up") or []
+            if not isinstance(on_give_up, list) or not all(isinstance(item, str) for item in on_give_up):
+                raise ParamError("`on_give_up` 必须是字符串数组")
+        except ParamError as error:
+            logger.error("FarmFail 参数错误：%s", error)
+            return False
+
+        _progress.record_failure()
+        plan = FarmPlan(max_failures=max_failures)
+        stop, reason = decide_stop(plan, _progress)
+        logger.info(
+            "FarmFail 失败次数 %d/%s（节点 %s）→ %s",
+            _progress.failures,
+            max_failures or "不限",
+            argv.node_name,
+            f"放弃（{reason}）" if stop else "重试",
+        )
+
+        if stop:
+            context.override_next(argv.node_name, list(on_give_up))
         return True

@@ -81,7 +81,7 @@ jobs:
 
       # Agent 纯逻辑单测（不需要设备）
       - name: Run agent unit tests
-        run: python -m pytest agent/tests -q
+        run: python -m pytest agent/tests tools/tests -q
 
       - name: Check formatting
         run: npx prettier --check .
