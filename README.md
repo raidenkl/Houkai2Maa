@@ -61,6 +61,7 @@ docs/zh_cn/develop/          # 约定、AI 工作流、游戏事实表
 - 流程描述模板：[docs/zh_cn/develop/flow_template.md](docs/zh_cn/develop/flow_template.md)
 - 排障手册：[docs/zh_cn/develop/debugging.md](docs/zh_cn/develop/debugging.md)
 - 进度与阻塞项：[docs/zh_cn/develop/phase_status.md](docs/zh_cn/develop/phase_status.md)
+- 交接文档（换环境/换 AI 先读）：[HANDOFF.md](HANDOFF.md)
 - 发布流程：[docs/zh_cn/develop/release.md](docs/zh_cn/develop/release.md)
 - 上手说明：[docs/zh_cn/develop/how_to_develop.md](docs/zh_cn/develop/how_to_develop.md)
 

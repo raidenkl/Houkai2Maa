@@ -107,7 +107,7 @@ python tools/dev/replay.py --case <case>
    有条件时 `tools/dev/record.py` 录一条用例，提交到 `tests/cases`。
 
 流程描述格式见 `docs/zh_cn/develop/flow_template.md`，需求方按模板描述一次即可转成节点。
-当前进度与阻塞项见 `docs/zh_cn/develop/phase_status.md`（先读它再决定做什么）。
+当前进度与阻塞项见 `docs/zh_cn/develop/phase_status.md`；**换环境/换会话接手时先读根目录 `HANDOFF.md`**。
 
 ## 变更纪律
 
