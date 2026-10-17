@@ -60,6 +60,7 @@ docs/zh_cn/develop/          # 约定、AI 工作流、游戏事实表
 - 游戏事实表：[docs/zh_cn/develop/game_facts.md](docs/zh_cn/develop/game_facts.md)
 - 流程描述模板：[docs/zh_cn/develop/flow_template.md](docs/zh_cn/develop/flow_template.md)
 - 排障手册：[docs/zh_cn/develop/debugging.md](docs/zh_cn/develop/debugging.md)
+- 进度与阻塞项：[docs/zh_cn/develop/phase_status.md](docs/zh_cn/develop/phase_status.md)
 - 上手说明：[docs/zh_cn/develop/how_to_develop.md](docs/zh_cn/develop/how_to_develop.md)
 
 ## 鸣谢
