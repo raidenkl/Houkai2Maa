@@ -73,3 +73,18 @@ def test_zero_failure_limit_disables_guard() -> None:
     plan = FarmPlan(max_failures=0)
     progress = FarmProgress(failures=99)
     assert decide_stop(plan, progress)[0] is False
+
+
+def test_stamina_flag_is_consumed_once() -> None:
+    progress = FarmProgress()
+    progress.note_stamina_insufficient()
+    assert progress.consume_stamina_flag() is True
+    assert progress.consume_stamina_flag() is False
+    assert progress.stamina_insufficient is False
+
+
+def test_reset_clears_stamina_flag() -> None:
+    progress = FarmProgress(battles=2, failures=1)
+    progress.note_stamina_insufficient()
+    progress.reset()
+    assert progress.consume_stamina_flag() is False

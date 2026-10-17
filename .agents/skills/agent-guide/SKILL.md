@@ -24,7 +24,7 @@ agent/
 ├── main.py                     # 唯一入口：register_all() + AgentServer.start_up
 ├── actions/
 │   ├── __init__.py             # MODULES + register_all() -> list[str]
-│   ├── farm_loop.py            # FarmLoop / FarmReset
+│   ├── farm_loop.py            # FarmLoop / FarmReset / FarmFail / FarmNote
 │   ├── scene_guard.py          # SceneGuard
 │   └── save_shot.py            # SaveShot
 ├── recognitions/

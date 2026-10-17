@@ -53,10 +53,24 @@ class FarmProgress:
 
     battles: int = 0
     failures: int = 0
+    stamina_insufficient: bool = False
 
     def reset(self) -> None:
         self.battles = 0
         self.failures = 0
+        self.stamina_insufficient = False
+
+    def note_stamina_insufficient(self) -> None:
+        """由 pipeline 的「体力不足」分支显式打标（`FarmNote` 动作）。"""
+
+        self.stamina_insufficient = True
+
+    def consume_stamina_flag(self) -> bool:
+        """读取并清除标记，保证一次体力不足只影响一次判定。"""
+
+        flag = self.stamina_insufficient
+        self.stamina_insufficient = False
+        return flag
 
     def record_battle(self) -> None:
         self.battles += 1

@@ -32,10 +32,11 @@ from common.log import get_logger
 from common.params import ParamError, as_bool, as_int
 from common.state import FarmPlan, FarmProgress, decide_stop
 
-REGISTERED = ["FarmLoop", "FarmReset", "FarmFail"]
+REGISTERED = ["FarmLoop", "FarmReset", "FarmFail", "FarmNote"]
 LOOP_ACTION = "FarmLoop"
 RESET_ACTION = "FarmReset"
 FAIL_ACTION = "FarmFail"
+NOTE_ACTION = "FarmNote"
 
 logger = get_logger("action.farm_loop")
 
@@ -76,7 +77,7 @@ class FarmLoop(CustomAction):
             return False
 
         _progress.record_battle()
-        stop, reason = decide_stop(plan, _progress)
+        stop, reason = decide_stop(plan, _progress, _progress.consume_stamina_flag())
         logger.info(
             "FarmLoop 第 %d 次战斗结束（失败 %d，上限 %s，刷到没体力=%s）→ %s",
             _progress.battles,
@@ -154,4 +155,48 @@ class FarmFail(CustomAction):
 
         if stop:
             context.override_next(argv.node_name, list(on_give_up))
+        return True
+
+
+@AgentServer.custom_action(NOTE_ACTION)
+class FarmNote(CustomAction):
+    """给 loop 打「体力不足」标记。
+
+    pipeline 用法（体力不足弹窗分支）：
+
+        "FarmStaminaPopup": {
+            "recognition": {"type": "Custom", "param": {"custom_recognition": "StaminaInsufficient"}},
+            "action": {
+                "type": "Custom",
+                "param": {
+                    "custom_action": "FarmNote",
+                    "custom_action_param": {"stamina_insufficient": true}
+                }
+            },
+            "next": ["FarmStaminaDecision"]
+        }
+
+    标记会在下一次 `FarmLoop` 判定时被消费（只生效一次），
+    因此「打到没体力」与「中途误触」不会互相污染。
+    """
+
+    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        try:
+            params = json.loads(argv.custom_action_param) if argv.custom_action_param else {}
+        except json.JSONDecodeError as error:
+            logger.error("FarmNote 参数不是合法 JSON：%s", error)
+            return False
+        if not isinstance(params, dict):
+            logger.error("FarmNote 参数必须是 JSON 对象")
+            return False
+
+        try:
+            flag = as_bool(params, "stamina_insufficient", True)
+        except ParamError as error:
+            logger.error("FarmNote 参数错误：%s", error)
+            return False
+
+        if flag:
+            _progress.note_stamina_insufficient()
+        logger.info("FarmNote 体力不足标记=%s（节点 %s）", flag, argv.node_name)
         return True

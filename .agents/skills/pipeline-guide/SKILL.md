@@ -121,6 +121,30 @@ description: 编写/修改 Houkai2Maa 的 MaaFramework Pipeline JSON 指南。�
 
 达到停止条件时 `FarmLoop` 会清空 `next`，任务自然结束。
 
+体力不足不要靠猜：用「识别 → 打标 → 由循环决策」三段式：
+
+```jsonc
+{
+    "FarmStaminaPopup": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "StaminaInsufficient",
+                "custom_recognition_param": {"node": "CommonPopupStamina"},
+            },
+        },
+        "action": {
+            "type": "Custom",
+            "param": {"custom_action": "FarmNote", "custom_action_param": {"stamina_insufficient": true}},
+        },
+        "next": ["FarmAfterStamina"],
+    },
+}
+```
+
+`FarmNote` 的标记只被下一次 `FarmLoop` 消费一次；若用户选「停止」，
+再加一个自定义动作/`StopTask` 收尾，不要让流程自己猜。
+
 ## 常见错误速查
 
 | 症状             | 原因                                      | 处理                             |
@@ -130,6 +154,14 @@ description: 编写/修改 Houkai2Maa 的 MaaFramework Pipeline JSON 指南。�
 | 误触发别的界面   | roi 太大 / 模板太宽泛                     | 缩小 roi、裁剪更独特的局部       |
 | ROI 越界         | 用非 720p 截图算的坐标                    | 重算坐标（lint E103 会报）       |
 | 改了 ID 但没生效 | Custom ID 拼错                            | lint E204 会指出未注册的 ID      |
+
+## 调参与覆盖（实测结论）
+
+- `pipeline_override` 是**字段合并**：只写 `{"next": []}` 不会清掉 `recognition`，
+  所以 option 覆盖只写需要改的字段即可。
+- 调阈值先用 `probe.py` 在真实截图上量：「命中框 + 分数」比盲调 0.8/0.9 可靠。
+- 未命中的节点在任务里会按 `timeout`（默认 20s）反复重试；
+  离线探测时把 `timeout` 调小（`probe.py` 默认 2000ms），否则批量探测很慢。
 
 ## 字段速查
 
