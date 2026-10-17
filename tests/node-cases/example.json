@@ -1,0 +1,11 @@
+{
+    // 模板用例：把截图放到 tests/node-cases/screens/ 后，在 cases 里逐条声明期望。
+    // 没有截图时 `npm run test:node` 会跳过（打印 not exists, ignored）。
+    "configs": {
+        "name": "main-home",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": []
+}
