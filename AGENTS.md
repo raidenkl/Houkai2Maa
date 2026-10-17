@@ -29,7 +29,7 @@ assets/resource/
 │   └── 90_activity/              # 活动业务（阵营战等，随版本变动）
 ├── image/                        # 模板图（与 pipeline 同构的子目录）
 └── model/ocr/                    # OCR 模型（gitignore，由 tools/configure.py 注入）
-tasks/                            # PI v2 import 片段：一个任务一个文件
+assets/tasks/                     # PI v2 import 片段（相对 interface.json 解析）
 agent/                            # AgentServer：actions/ recognitions/ common/ tests/
 tools/                            # lint / record / replay / setup
 tests/                            # cases(回放) 与 node-cases(离线识别)
@@ -46,7 +46,7 @@ docs/zh_cn/develop/               # 开发文档
 4. **坐标基准 1280×720**：所有 `roi`、`target`、模板图都按 720p；
    `interface.json` 的 `display_short_side` 必须是 720。
 5. **命名规范**：节点名/文件名/图片路径用 ASCII PascalCase；内部节点 `__` 前缀，
-   且禁止被 `tasks/` 直接引用。中文只出现在 `label`/`description`/OCR `expected`。
+   且禁止被 `assets/tasks/` 直接引用。中文只出现在 `label`/`description`/OCR `expected`。
 6. **Custom ID 必须真实注册**：pipeline 里写的 `custom_action` / `custom_recognition`
    必须在 `agent/` 中有同名装饰器，否则 lint 报 E204。
 
@@ -92,9 +92,9 @@ python tools/dev/replay.py --case <case>
    先写「界面判定」节点，再写「操作」节点，操作后必须能识别到下一个界面。
 4. **写兜底**：入口 `*Entry` 的 `next` 末尾加 `[JumpBack]` 弹窗/加载处理；
    兜底节点都要 `max_hit`。
-5. **接 option**：需要的参数（次数、开关、目标）走 `tasks/` 里的 `option`
+5. **接 option**：需要的参数（次数、开关、目标）走 `assets/tasks/` 里的 `option`
     - `pipeline_override`，不要写死在 pipeline。
-6. **注册任务**：在 `tasks/daily/<Task>.json` 写 `task` 条目，并加入
+6. **注册任务**：在 `assets/tasks/daily/<Task>.json` 写 `task` 条目，并加入
    `assets/interface.json` 的 `import` 列表，设置 `group`。
 7. **验证**：`npm run lint && npm run test && npm run replay`；
    有条件时 `tools/dev/record.py` 录一条用例，提交到 `tests/cases`。

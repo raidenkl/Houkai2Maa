@@ -1,9 +1,13 @@
 # tasks — interface 片段（PI v2 `import`）
 
 本目录存放任务的 ProjectInterface 片段，一个任务（或一组相关的任务+选项）一个文件，
-由 `assets/interface.json` 的 `import` 数组引入。合并规则见
-[MaaFramework 文档](https://github.com/MaaXYZ/MaaFramework/blob/main/docs/zh_cn/3.3-ProjectInterfaceV2协议.md)
-（`task` 追加、`option` 同名覆盖、`global_option` 去重追加）。
+由 `assets/interface.json` 的 `import` 数组引入。
+
+> PI 的 `import` 路径**相对 `interface.json` 所在目录**解析，所以片段放在 `assets/tasks/`，
+> 而 `interface.json` 里写 `"tasks/activity/FactionWar.json"`；打包时 `install.py` 会把它
+> 复制成 `install/tasks/`。合并规则见
+> [MaaFramework 文档](https://github.com/MaaXYZ/MaaFramework/blob/main/docs/zh_cn/3.3-ProjectInterfaceV2协议.md)
+> （`task` 追加、`option` 同名覆盖、`global_option` 去重追加）。
 
 规划中的结构：
 

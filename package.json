@@ -7,7 +7,7 @@
         "check": "python tools/dev/maa_tools.py check",
         "test:node": "python tools/dev/maa_tools.py test",
         "lint": "python tools/lint/pipeline_lint.py --strict",
-        "schema": "python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --exclude-files default_pipeline.json --interface-files assets/interface.json",
+        "schema": "python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement --exclude-files default_pipeline.json --interface-files assets/interface.json --task-dirs assets/tasks",
         "test": "python tools/dev/run_tests.py",
         "replay": "python tools/dev/replay.py --all",
         "verify": "npm run check && npm run test:node && npm run lint && npm run schema && npm run test && npm run replay && npm run format:check",

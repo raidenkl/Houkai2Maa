@@ -41,7 +41,7 @@ IMAGE_DIR = RESOURCE_DIR / "image"
 AGENT_DIR = REPO_ROOT / "agent"
 INTERFACE_FILE = REPO_ROOT / "assets" / "interface.json"
 ALLOWLIST_FILE = Path(__file__).resolve().parent / "allowlist.json"
-TASKS_DIR = REPO_ROOT / "tasks"
+TASKS_DIR = INTERFACE_FILE.parent / "tasks"
 
 BASE_WIDTH = 1280
 BASE_HEIGHT = 720

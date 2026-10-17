@@ -42,7 +42,7 @@ python tools/dev/snapshot.py --image shots/signin.png --json
 ### 2. 改（受约束）
 
 - 只改这些位置：`assets/resource/pipeline/**`、`assets/resource/image/**`、
-  `tasks/**`、`agent/**`、`tests/**`、文档；
+  `assets/tasks/**`、`agent/**`、`tests/**`、文档；
 - 不要手改 `deps/tools/*.schema.json`；
 - 改完立刻跑 `npm run lint`，它会指出命名、ROI、兜底、Custom ID 等问题。
 

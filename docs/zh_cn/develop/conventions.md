@@ -11,13 +11,13 @@
 
 ## 2. 目录与分层
 
-| 层      | 目录           | 允许引用                     |
-| ------- | -------------- | ---------------------------- |
-| L0 通用 | `10_common/`   | 仅自身                       |
-| L1 导航 | `20_nav/`      | L0                           |
-| L2 日常 | `30_daily/`    | L0、L1                       |
-| L2 活动 | `90_activity/` | L0、L1                       |
-| L3 编排 | `tasks/`       | 任意 L2 的 `*Entry` 与 L0/L1 |
+| 层      | 目录            | 允许引用                     |
+| ------- | --------------- | ---------------------------- |
+| L0 通用 | `10_common/`    | 仅自身                       |
+| L1 导航 | `20_nav/`       | L0                           |
+| L2 日常 | `30_daily/`     | L0、L1                       |
+| L2 活动 | `90_activity/`  | L0、L1                       |
+| L3 编排 | `assets/tasks/` | 任意 L2 的 `*Entry` 与 L0/L1 |
 
 `__` 前缀内部节点只允许在同文件内使用。
 
@@ -55,8 +55,8 @@
 ## 6. option 与任务注册
 
 - 参数一律走 `option` + `pipeline_override`，不要在 pipeline 里写死次数/开关；
-- `option` 定义放 `tasks/options/global.json`（跨任务）或 `tasks/daily/<Task>.json`（任务内）；
-- 新任务的 `tasks/*.json` 必须加入 `interface.json` 的 `import`；
+- `option` 定义放 `assets/tasks/options/global.json`（跨任务）或 `assets/tasks/daily/<Task>.json`（任务内）；
+- 新任务的 `assets/tasks/*.json` 必须加入 `interface.json` 的 `import`（路径相对 `assets/`）；
 - 任务 `group` 只能是 `daily` / `activity` / `tools`。
 
 ## 7. 规则豁免

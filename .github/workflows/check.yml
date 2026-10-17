@@ -73,7 +73,8 @@ jobs:
             --resource-dirs assets/resource \
             --exclude-dirs assets/resource/announcement \
             --exclude-files "default_pipeline.json" \
-            --interface-files assets/interface.json
+            --interface-files assets/interface.json \
+            --task-dirs assets/tasks
 
       # 项目自身约定：720p 基准、命名、兜底、Custom ID 注册等
       - name: Lint pipeline conventions

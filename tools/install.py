@@ -157,7 +157,9 @@ def install_agent():
 def install_tasks():
     """interface.json 的 `import` 片段（tasks/）必须随安装包一起分发。"""
 
-    tasks_dir = working_dir / "tasks"
+    # interface.json 会被拷到 install 根目录，PI 的 import 路径相对它解析，
+    # 因此把 assets/tasks 分发为 install/tasks
+    tasks_dir = working_dir / "assets" / "tasks"
     if not tasks_dir.is_dir():
         return
     shutil.copytree(tasks_dir, install_path / "tasks", dirs_exist_ok=True)

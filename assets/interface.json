@@ -76,15 +76,8 @@
             "default_expand": false
         }
     ],
-    "task": [
-        {
-            "name": "FactionWar",
-            "label": "阵营战",
-            "entry": "FactionWarEntry",
-            "description": "循环刷 bonus 关卡，会自动购买体力。使用前请先手动点进 bonus 关卡的备战页面。",
-            "group": [
-                "activity"
-            ]
-        }
+    "task": [],
+    "import": [
+        "tasks/activity/FactionWar.json"
     ]
 }

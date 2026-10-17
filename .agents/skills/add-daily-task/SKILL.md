@@ -91,13 +91,13 @@ python tools/dev/crop.py \
 
 需要次数/开关/目标时：
 
-1. 在 `tasks/options/global.json` 或 `tasks/daily/<TaskName>.json` 定义 `option`；
+1. 在 `assets/tasks/options/global.json` 或 `assets/tasks/daily/<TaskName>.json` 定义 `option`；
 2. 用 `pipeline_override` 覆盖节点字段（`enabled`、`custom_action_param`、`target` 等）；
 3. 不要为了一个开关复制整份节点。
 
 ## 5. 注册任务
 
-`tasks/daily/<TaskName>.json`：
+`assets/tasks/daily/<TaskName>.json`：
 
 ```jsonc
 {

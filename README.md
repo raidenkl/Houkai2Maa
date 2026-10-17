@@ -46,7 +46,7 @@ assets/resource/
 ├── pipeline/                # 00_launch / 10_common / 20_nav / 30_daily / 90_activity
 ├── image/                   # 模板图（720p）
 └── model/ocr/               # OCR 模型（构建时注入）
-tasks/                       # 任务与选项片段（interface import）
+assets/tasks/                # 任务与选项片段（interface import，相对 interface.json）
 agent/                       # AgentServer：自定义动作/识别 + 单测
 tools/                       # lint / record / replay / setup
 tests/                       # cases（回放）与 node-cases（离线识别）

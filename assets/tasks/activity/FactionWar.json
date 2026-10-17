@@ -1,0 +1,41 @@
+{
+    // 阵营战（活动玩法）：任务声明 + 选项。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "FactionWar",
+            "label": "阵营战",
+            "entry": "FactionWarEntry",
+            "default_check": false,
+            "description": "循环刷 bonus 关卡，会自动购买体力。使用前请先手动点进 bonus 关卡的备战页面。",
+            "group": [
+                "activity"
+            ],
+            "option": [
+                "FactionWarDouble"
+            ]
+        }
+    ],
+    "option": {
+        "FactionWarDouble": {
+            "type": "switch",
+            "label": "使用双倍体力券",
+            "description": "关闭后不会再尝试兑换/使用双倍体力券（适合券已用完、只想用普通体力刷）。",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "FactionWarExchangeDouble": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "default_case": "Yes"
+        }
+    }
+}

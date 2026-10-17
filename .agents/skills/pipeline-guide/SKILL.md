@@ -34,7 +34,7 @@ description: 编写/修改 Houkai2Maa 的 MaaFramework Pipeline JSON 指南。�
 4. **坐标基准 1280×720（16:9）**：`roi`、`target`、模板图全部按 720p。
    `interface.json` 的 `display_short_side` 固定 720。
 5. **命名规范**：节点名 ASCII PascalCase（`DailySignInMain`），内部节点 `__` 前缀
-   （`__FarmWaitResult`）且禁止被 `tasks/` 直接引用；文件名/图片路径同样 ASCII。
+   （`__FarmWaitResult`）且禁止被 `assets/tasks/` 直接引用；文件名/图片路径同样 ASCII。
 6. **Custom ID 必须注册**：`custom_action` / `custom_recognition` 的字符串必须在
    `agent/` 中有同名装饰器（lint 规则 E204）。
 
