@@ -31,7 +31,8 @@ python tools/dev/snapshot.py --json   # 720p 截图 + OCR + 标注图，输出�
 ```
 
 结论写进 `docs/zh_cn/develop/game_facts.md`；没有实测就不要写坐标与文案。
-裁模板用 `tools/dev/crop.py`（会校验 720p 并直接生成节点片段）。
+裁模板用 `tools/dev/crop.py`：非 720p 截图会自动缩放（`--box` 仍用原图坐标），
+非 16:9 会直接拒绝（避免模板变形），并直接生成节点片段。
 
 对已有截图做离线 OCR（不需要设备）：
 

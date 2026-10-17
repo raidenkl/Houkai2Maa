@@ -18,6 +18,11 @@
         --node DailySignInButton \
         --pad 20
 
+    # 非 720p 截图：自动缩放，--box 按**原图**坐标给（工具会换算到 720p）
+    python tools/dev/crop.py --screen phone-1080p.png --box 1470,840,180,90 --out 30_daily/X/btn.png
+    # 明确禁止缩放（要求原图就是 1280x720）
+    python tools/dev/crop.py --screen x.png --box 0,0,100,50 --no-scale
+
     # 只看 ROI 不落盘
     python tools/dev/crop.py --screen x.png --box 0,0,100,50 --dry-run
 """
@@ -77,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", help="模板保存路径（相对 assets/resource/image）")
     parser.add_argument("--node", help="节点名，用于生成 JSON 片段")
     parser.add_argument("--pad", type=int, default=20, help="生成 ROI 时向外扩展的像素（默认 20）")
+    parser.add_argument("--no-scale", action="store_true", help="要求截图必须是 1280x720，否则报错")
     parser.add_argument("--dry-run", action="store_true", help="只校验并打印，不写文件")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出结果")
     args = parser.parse_args(argv)
@@ -93,10 +99,37 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"截图不存在：{screen_path}")
 
     image = Image.open(screen_path).convert("RGB")
-    if image.size != BASE_SIZE:
-        raise SystemExit(f"截图尺寸 {image.size} 不是 1280x720，请用 snapshot.py 重新采集（display_short_side=720）")
+    original_size = image.size
+    scale_x = scale_y = 1.0
+    if original_size != BASE_SIZE:
+        if args.no_scale:
+            raise SystemExit(f"截图尺寸 {original_size} 不是 1280x720（--no-scale 已指定）")
+        width, height = original_size
+        aspect = width / height
+        if abs(aspect - BASE_SIZE[0] / BASE_SIZE[1]) > 0.02:
+            raise SystemExit(
+                f"截图 {original_size} 不是 16:9（{aspect:.3f}），直接缩放会让模板变形；"
+                "请用 16:9 的截图（或先裁剪掉黑边）"
+            )
+        scale_x = BASE_SIZE[0] / width
+        scale_y = BASE_SIZE[1] / height
+        image = image.resize(BASE_SIZE, Image.LANCZOS)
+        print(
+            f"[info] 截图 {original_size[0]}x{original_size[1]} 已缩放到 1280x720，"
+            f"--box 按原图坐标换算（x×{scale_x:.3f}, y×{scale_y:.3f}）",
+            file=sys.stderr,
+        )
 
-    box = parse_box(args.box)
+    original_box = parse_box(args.box)
+    if (scale_x, scale_y) != (1.0, 1.0):
+        box = (
+            round(original_box[0] * scale_x),
+            round(original_box[1] * scale_y),
+            max(1, round(original_box[2] * scale_x)),
+            max(1, round(original_box[3] * scale_y)),
+        )
+    else:
+        box = original_box
     roi = clamp_box(box, args.pad)
     template_rel = args.out or "template.png"
     snippet = node_snippet(args.node or "UnnamedNode", template_rel, roi)
@@ -104,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
         "screen": str(screen_path.relative_to(REPO_ROOT))
         if screen_path.is_relative_to(REPO_ROOT)
         else str(screen_path),
+        "screen_size": list(original_size),
+        "box_input": list(original_box),
         "template_box": list(box),
         "roi": list(roi),
         "template": template_rel,
@@ -114,7 +149,10 @@ def main(argv: list[str] | None = None) -> int:
         target = IMAGE_DIR / template_rel
         target.parent.mkdir(parents=True, exist_ok=True)
         image.crop((box[0], box[1], box[0] + box[2], box[1] + box[3])).save(target)
-        payload["saved"] = str(target.relative_to(REPO_ROOT))
+        try:
+            payload["saved"] = str(target.relative_to(REPO_ROOT))
+        except ValueError:  # 模板目录可能被指向仓库外（测试/临时输出）
+            payload["saved"] = str(target)
 
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))

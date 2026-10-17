@@ -79,6 +79,7 @@ python tools/dev/snapshot.py                     # 设备截图 + 全屏 OCR + �
 python tools/dev/snapshot.py --image shots/x.png  # 离线 OCR 一张截图（自动缩放到 720p）
 python tools/dev/snapshot.py --image shots/x.png --grid  # 额外输出 100px 网格图，按图报坐标
 python tools/dev/crop.py --screen <png> --box x,y,w,h --out 30_daily/<Task>/xxx.png --node <Node>
+#   ↑ 非 720p 截图会自动缩放（--box 用原图坐标），且拒绝非 16:9
 python tools/dev/dryrun.py --images shots/ --entry <Entry>   # 用截图离线跑流程（无需设备）
 python tools/dev/probe.py --node <Node> --image shots/x.png  # 单节点命中/框/分数（调阈值）
 python assets/agent/pretask/device_prepare.py --image shots/x.png   # 分辨率体检（预任务同款）

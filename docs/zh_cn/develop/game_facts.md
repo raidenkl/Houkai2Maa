@@ -73,3 +73,76 @@ python tools/dev/snapshot.py --image shots/home.png --grid
 | 版本 | 变化 | 影响节点 |
 | ---- | ---- | -------- |
 | 待补 | —    | —        |
+
+## 7. PC 端（Win32）实测步骤
+
+> 目前 `interface.json` 的「桌面端」控制器是**实验性**配置，窗口类名/标题与截图方式都未验证。
+> 按下面步骤实测后，把结果填回本节并决定是否转正（Phase 5）。
+
+1. **找到窗口**：启动 PC 客户端后列出窗口，确认类名与标题正则：
+
+    ```bash
+    uvx maafw-cli device win32
+    ```
+
+2. **确定截图方式**：依次尝试 MFAAvalonia 控制器里的 `screencap`：
+   `ScreenDC`（最兼容，前台）→ `PrintWindow`（后台）→ `BitBlt`。
+   观察窗口被遮挡/最小化时是否还能截图。
+
+3. **确定输入方式**：`Seize`（最直接）→ `PostMessageWithCursorPos` → `PostMessage`。
+   记录哪种能真正点到按钮，以及是否需要管理员权限。
+
+4. **确认分辨率**：Win32 截图尺寸 = 窗口客户区尺寸。需要把窗口调整到
+   1280×720（或确认客户端是否自带缩放）；若 `display_short_side` 对 Win32 无效，
+   则模板必须在**客户端实际窗口尺寸**下裁剪，并在本节记录。
+
+5. **填回配置**：`assets/interface.json` 的 `controller[桌面端].win32`：
+
+    ```jsonc
+    {
+        "class_regex": "<实测类名>",
+        "window_regex": "<实测标题>",
+        "screencap": "<可用方式>",
+        "mouse": "<可用方式>",
+        "keyboard": "<可用方式>",
+    }
+    ```
+
+6. **验收**：用 `probe.py`（指向 PC 截图资源）确认关键模板命中分数 ≥0.9，
+   再跑一条只读任务（如导航/领奖）。
+
+## 8. 阵营战 720p 模板重拍步骤
+
+现有 `assets/resource/image/双倍.png`（47×48）与 `双倍体力兑换.png`（300×79）是在
+1080p 基准下裁的。按 720p 重拍后即可删除 `tools/lint/allowlist.json` 中的 E203 豁免前置条件。
+
+1. 进入 bonus 关卡备战页，截图（`display_short_side=720`）：
+
+    ```bash
+    python tools/dev/snapshot.py
+    ```
+
+2. 用网格图定位两个按钮，重新裁剪（覆盖原文件）：
+
+    ```bash
+    python tools/dev/crop.py --screen debug/probe/<ts>-screen.png \
+        --box <x>,<y>,<w>,<h> --out 双倍.png --node FactionWarDouble --pad 20 --dry-run  # 先看 ROI
+    python tools/dev/crop.py --screen debug/probe/<ts>-screen.png \
+        --box <x>,<y>,<w>,<h> --out 双倍体力兑换.png --node FactionWarExchangeDouble --pad 20
+    ```
+
+3. 验证命中：
+
+    ```bash
+    python tools/dev/probe.py --node FactionWarEntry --image debug/probe/<ts>-screen.png
+    python tools/dev/probe.py --node FactionWarExchangeDouble --image debug/probe/<ts>-screen.png
+    ```
+
+4. 用同一张截图生成节点回归用例，后续每次改动都会验证：
+
+    ```bash
+    npm run nodecase -- --node FactionWarEntry --node FactionWarExchangeDouble --images debug/probe
+    ```
+
+5. 最后真机跑一遍：`uvx maafw-cli pipeline run FactionWarEntry`（前置：手动进入备战页），
+   并 `python tools/dev/record.py --case faction-war --entry FactionWarEntry` 存档。
