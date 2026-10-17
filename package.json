@@ -16,7 +16,8 @@
         "format:check": "prettier --check .",
         "nodecase": "python tools/dev/nodecase.py",
         "lint:py": "python tools/dev/run_ruff.py check .",
-        "format:py": "python tools/dev/run_ruff.py format --check ."
+        "format:py": "python tools/dev/run_ruff.py format --check .",
+        "release:check": "python tools/dev/release_check.py"
     },
     "devDependencies": {
         "@nekosu/maa-tools": "1.1.3",

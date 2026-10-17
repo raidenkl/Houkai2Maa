@@ -30,14 +30,14 @@ jobs:
       - uses: MirrorChyan/uploading-action@v1
         with:
           filetype: latest-release
-          filename: ${{ format('MaaXXX-{0}-{1}-*', matrix.os, matrix.arch) }}
-          mirrorchyan_rid: MaaXXX
+          filename: ${{ format('MaaHoukai2-{0}-{1}-*', matrix.os, matrix.arch) }}
+          mirrorchyan_rid: MaaHoukai2
           tag: ${{ inputs.tag }}
 
           os: ${{ matrix.os }}
           arch: ${{ matrix.arch }}
 
-          owner: MaaXYZ
+          owner: raidenkl
           repo: MaaXXX
           github_token: ${{ secrets.GITHUB_TOKEN }}
           upload_token: ${{ secrets.MirrorChyanUploadToken }}

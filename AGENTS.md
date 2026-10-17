@@ -63,6 +63,7 @@ npm run schema                     # JSON Schema 校验
 npm run test                       # Agent 单元测试（pytest）
 npm run replay                     # 回放录制的端到端用例
 npm run verify                     # 以上全部串起来跑
+npm run release:check -- --tag vX.Y.Z --strict-git   # 发布前自检（版本/路径/工作区）
 npm run format                     # prettier 格式化（含 pipeline 字段排序）
 ```
 

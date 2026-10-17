@@ -1,8 +1,8 @@
 [remote.github]
-owner = "MaaXYZ"
-repo = "MaaPracticeBoilerplate"
-#自用时换成自己的仓库owner和repo
-#注意，本地git user需与github一致才能实现成功@
+owner = "raidenkl"
+repo = "Houkai2Maa"
+# 本地 git user 需与 GitHub 账号一致才能正确 @
+# 改仓库名时同步这里与 interface.json 的 github 字段
 [changelog]
 # 标题
 header = """
