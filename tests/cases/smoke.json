@@ -1,0 +1,16 @@
+{
+    // 离线回放的最小用例：验证 StaticImageController/ReplayController 链路本身可用。
+    // 它不是游戏玩法，只是夹具（见 tests/fixtures/smoke 与 tests/fixtures/replay）。
+    "case": "smoke",
+    "entry": "SmokeEntry",
+    "resource": "tests/fixtures/smoke/resource",
+    "recording": "tests/fixtures/replay/smoke/smoke.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "SmokeStepA",
+            "SmokeStepB"
+        ],
+        "max_steps": 10
+    }
+}

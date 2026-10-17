@@ -58,3 +58,23 @@ def test_unknown_case_name_reports_failure(tmp_path: Path) -> None:
 
     assert code == 1
     assert "没有名为 nope 的用例" in buffer.getvalue()
+
+
+def test_replay_engine_flags_missing_expected_node(tmp_path: Path) -> None:
+    """录制可用但期望节点对不上时，回放必须失败（防止断言形同虚设）。"""
+
+    case = {
+        "case": "wrong-expect",
+        "entry": "SmokeEntry",
+        "resource": "tests/fixtures/smoke/resource",
+        "recording": "tests/fixtures/replay/smoke/smoke.jsonl",
+        "expect": {"completed": True, "hit_nodes": ["SmokeStepA", "NoSuchNode"]},
+    }
+    (tmp_path / "wrong-expect.json").write_text(json.dumps(case, ensure_ascii=False), encoding="utf-8")
+
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        code = replay.main(["--all", "--cases-dir", str(tmp_path)])
+
+    assert code == 1
+    assert "[FAIL]" in buffer.getvalue()

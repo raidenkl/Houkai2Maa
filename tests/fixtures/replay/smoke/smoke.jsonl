@@ -1,0 +1,5 @@
+{"cost": 0, "success": true, "type": "connect", "uuid": "smoke", "version": "fixture", "timestamp": 1000000000000000, "width": 1280, "height": 720}
+{"cost": 0, "path": "smoke-Screenshot/01-home.png", "success": true, "type": "screencap", "timestamp": 1000000000000001}
+{"cost": 0, "success": true, "type": "click", "x": 160, "y": 140, "timestamp": 1000000000000002}
+{"cost": 0, "path": "smoke-Screenshot/02-panel.png", "success": true, "type": "screencap", "timestamp": 1000000000000003}
+{"cost": 0, "success": true, "type": "click", "x": 680, "y": 360, "timestamp": 1000000000000004}
