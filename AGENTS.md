@@ -118,6 +118,8 @@ python tools/dev/replay.py --case <case>
 
 ## 排障
 
+完整清单见 `docs/zh_cn/develop/debugging.md`，速查：
+
 1. `debug/maa.log`：框架日志；用 [MaaLogAnalyzer](https://mla.maafw.com/) 看任务流。
 2. `debug/on_error/`：失败时的自动截图。
 3. `debug/shots/`：`SaveShot` 自定义动作落盘的截图。

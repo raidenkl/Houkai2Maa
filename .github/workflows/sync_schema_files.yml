@@ -10,24 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  check-repository:
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.check.outputs.should_run }}
-    steps:
-      - id: check
-        run: |
-          if [[ "${{ github.repository }}" == "MaaXYZ/MaaPracticeBoilerplate" ]]; then
-            echo "Repository is MaaXYZ/MaaPracticeBoilerplate, proceeding with sync"
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          else
-            echo "Repository is not MaaXYZ/MaaPracticeBoilerplate, skipping sync"
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
-
+  # 本仓库是 MaaPracticeBoilerplate 的衍生项目：保留上游的 schema 自动同步，
+  # 但判定条件改为「本项目自己的仓库」，避免模板里的仓库名让任务永远跳过。
   sync-schema-files:
-    needs: check-repository
-    if: needs.check-repository.outputs.should_run == 'true'
     runs-on: ubuntu-latest
 
     steps:

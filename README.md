@@ -59,6 +59,7 @@ docs/zh_cn/develop/          # 约定、AI 工作流、游戏事实表
 - AI 辅助开发：[docs/zh_cn/develop/ai_workflow.md](docs/zh_cn/develop/ai_workflow.md)
 - 游戏事实表：[docs/zh_cn/develop/game_facts.md](docs/zh_cn/develop/game_facts.md)
 - 流程描述模板：[docs/zh_cn/develop/flow_template.md](docs/zh_cn/develop/flow_template.md)
+- 排障手册：[docs/zh_cn/develop/debugging.md](docs/zh_cn/develop/debugging.md)
 - 上手说明：[docs/zh_cn/develop/how_to_develop.md](docs/zh_cn/develop/how_to_develop.md)
 
 ## 鸣谢

@@ -585,6 +585,53 @@ def load_interface(ctx: LintContext) -> set[str]:
                 file="assets/interface.json",
             )
 
+    group_names = {
+        str(group.get("name"))
+        for group in as_list(interface.get("group"))
+        if isinstance(group, dict) and group.get("name")
+    }
+    resource_names = {
+        str(resource.get("name"))
+        for resource in as_list(interface.get("resource"))
+        if isinstance(resource, dict) and resource.get("name")
+    }
+    controller_names = {
+        str(controller.get("name"))
+        for controller in as_list(interface.get("controller"))
+        if isinstance(controller, dict) and controller.get("name")
+    }
+    option_names = set((interface.get("option") or {}).keys())
+
+    seen_task_names: set[str] = set()
+    for task in as_list(interface.get("task")):
+        if not isinstance(task, dict):
+            continue
+        task_name = str(task.get("name", ""))
+        if task_name in seen_task_names:
+            ctx.error("E206", f"任务名重复：`{task_name}`", file="assets/interface.json")
+        seen_task_names.add(task_name)
+
+        for group in as_list(task.get("group")):
+            if group not in group_names:
+                ctx.error("E217", f"任务 `{task_name}` 引用了未声明的 group `{group}`", file="assets/interface.json")
+        for controller in as_list(task.get("controller")):
+            if controller not in controller_names:
+                ctx.error(
+                    "E217",
+                    f"任务 `{task_name}` 引用了未声明的 controller `{controller}`",
+                    file="assets/interface.json",
+                )
+        for resource in as_list(task.get("resource")):
+            if resource not in resource_names:
+                ctx.error("E217", f"任务 `{task_name}` 引用了未声明的 resource `{resource}`", file="assets/interface.json")
+        for option in as_list(task.get("option")):
+            if option not in option_names:
+                ctx.error("E218", f"任务 `{task_name}` 引用了未定义的 option `{option}`", file="assets/interface.json")
+
+    for option in as_list(interface.get("global_option")):
+        if option not in option_names:
+            ctx.error("E218", f"global_option 引用了未定义的 option `{option}`", file="assets/interface.json")
+
     for option_name, option in (interface.get("option") or {}).items():
         if not isinstance(option, dict):
             continue

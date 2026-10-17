@@ -54,7 +54,11 @@ def load_cases(cases_dir: Path) -> list[dict]:
             raise SystemExit(f"用例解析失败：{error}")
         if not isinstance(data, dict) or "case" not in data:
             raise SystemExit(f"用例缺少 case 字段：{path}")
-        data.setdefault("_path", str(path.relative_to(REPO_ROOT)))
+        try:
+            display = str(path.relative_to(REPO_ROOT))
+        except ValueError:  # 用例目录可能在仓库外（例如临时目录）
+            display = str(path)
+        data.setdefault("_path", display)
         cases.append(data)
     return cases
 
