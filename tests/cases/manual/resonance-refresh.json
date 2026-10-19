@@ -1,0 +1,21 @@
+{
+    // 共鸣之力：存在感列表找不到任务时滚动兜底 + 回主界面（真机录制，2026-10-18）。
+    // 录制时当天任务已完成（该行会从列表消失），因此走的是「Panel → Scroll×4 → Done」分支；
+    // 「Find → Shop → Free → Confirm」刷新路径由离线 dryrun 与 node-cases 覆盖。
+    "case": "resonance-refresh",
+    "entry": "ResonanceRefreshEntry",
+    "recording": "tests/recordings/resonance-refresh/resonance-refresh.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "ResonanceRefreshEntry",
+            "ResonanceRefreshPanel",
+            "ResonanceRefreshScroll",
+            "ResonanceRefreshPanel",
+            "ResonanceRefreshScroll",
+            "ResonanceRefreshDone",
+            "ResonanceRefreshHome"
+        ],
+        "max_steps": 60
+    }
+}

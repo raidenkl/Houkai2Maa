@@ -21,9 +21,12 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def find_ruff() -> str | None:
-    local = REPO_ROOT / ".pylib" / "bin" / "ruff"
-    if local.is_file():
-        return str(local)
+    bin_dir = REPO_ROOT / ".pylib" / "bin"
+    # Windows 上 pip 装出来的是 ruff.exe，不能只按无扩展名查找
+    for name in ("ruff.exe", "ruff"):
+        candidate = bin_dir / name
+        if candidate.is_file():
+            return str(candidate)
     return shutil.which("ruff")
 
 

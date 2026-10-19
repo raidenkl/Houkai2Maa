@@ -1,0 +1,67 @@
+{
+    "configs": {
+        "name": "power-boost",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "power-bought.png",
+            "hits": [
+                "PowerBoostShop",
+                "PowerBoostBought"
+            ]
+        },
+        {
+            "image": "power-confirm.png",
+            "hits": [
+                "PowerBoostShop",
+                "PowerBoostGift",
+                "PowerBoostConfirm",
+                "PowerBoostHome"
+            ]
+        },
+        {
+            "image": "power-home.png",
+            "hits": [
+                "PowerBoostEntry",
+                "PowerBoostHome"
+            ]
+        },
+        {
+            "image": "power-list-done.png",
+            "hits": [
+                "PowerBoostTab",
+                "PowerBoostPanel",
+                "PowerBoostDone",
+                "PowerBoostHome"
+            ]
+        },
+        {
+            "image": "power-list.png",
+            "hits": [
+                "PowerBoostTab",
+                "PowerBoostPanel",
+                "PowerBoostFind",
+                "PowerBoostDone",
+                "PowerBoostHome"
+            ]
+        },
+        {
+            "image": "power-shop-scrolled.png",
+            "hits": [
+                "PowerBoostShop",
+                "PowerBoostGift",
+                "PowerBoostHome"
+            ]
+        },
+        {
+            "image": "power-shop.png",
+            "hits": [
+                "PowerBoostShop",
+                "PowerBoostHome"
+            ]
+        }
+    ]
+}

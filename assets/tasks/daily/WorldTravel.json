@@ -1,0 +1,16 @@
+{
+    // 世界这么大（日常）：用快捷战斗把「虚轴之庭」的今日免费次数刷完。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "WorldTravel",
+            "label": "世界这么大",
+            "entry": "WorldTravelEntry",
+            "default_check": true,
+            "description": "从主界面打开存在感列表，找到「世界这么大」点前往，进入虚轴之庭后连续「快捷战斗」，直到今日免费次数用完（界面会从「今日免费 X/6」变成「消耗体力 35」）。当天已完成时该任务会从列表消失，不会重复刷。",
+            "group": [
+                "daily"
+            ]
+        }
+    ]
+}

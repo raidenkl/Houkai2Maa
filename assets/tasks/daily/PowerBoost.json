@@ -1,0 +1,16 @@
+{
+    // 战力补强（日常）：到礼包商店买一件免费商品。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "PowerBoost",
+            "label": "战力补强",
+            "entry": "PowerBoostEntry",
+            "default_check": true,
+            "description": "从主界面打开存在感列表，找到「战力补强」点前往，进入礼包商店后买下每日免费的「零时馈礼」（价格 ×0，不消耗水晶）。价格不是 0 时会停下不买。当天已完成时该任务会从列表消失。",
+            "group": [
+                "daily"
+            ]
+        }
+    ]
+}

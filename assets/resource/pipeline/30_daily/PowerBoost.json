@@ -1,0 +1,317 @@
+{
+    // 战力补强（日常）：到礼包商店买一件免费商品（当前是每日免费的「零时馈礼」）。
+    // 流程（实测 2026-10-19，1280x720，MuMu 官服）：主界面左栏首个图标 → 存在感页签
+    //   → 找到「战力补强」→ 同行「前往」→ 商店·礼包页 → 下滑找到「零时馈礼」
+    //   → 购买 → 确认弹窗购买 → 「购买成功」确定 → 回主界面。
+    // 关键事实：
+    //   1) 任务说明是「购买一件『礼包商店』中的商品」，完成后该行从存在感列表消失；
+    //   2) 「战力补强」标题字体识别不稳（全屏 OCR 读不到），改用说明文字「购买一件」作锚点，
+    //      「前往」= 说明框 +(471,19)；
+    //   3) 「零时馈礼」在礼包页第二行第四列，价格 ×0（每日限购 1/1，不花水晶），
+    //      故用价格「×0」作锚点 + offset (2,47) 点到「购买」按钮；
+    //      价格不是 0 时不会命中，任务会安全停下（避免误买付费礼包）；
+    //   4) 购买后顶上弹「战力补强 任务已完成」横幅并盖住导航栏，
+    //      收尾靠识别「首页」自然等它消失；
+    //   5) 找不到「战力补强」时下滑最多 4 次后正常收尾（当天已完成）。
+    "PowerBoostEntry": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PowerBoostPanel",
+            "PowerBoostTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "PowerBoostTab": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    195,
+                    150,
+                    75
+                ],
+                "expected": ["存在感"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["PowerBoostPanel"]
+    },
+    "PowerBoostPanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "PowerBoostFind",
+            "PowerBoostScroll",
+            "PowerBoostDone"
+        ]
+    },
+    "PowerBoostFind": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    250,
+                    780,
+                    430
+                ],
+                "expected": ["购买一件"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    471,
+                    19,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2000,
+        "next": ["PowerBoostShop"]
+    },
+    "PowerBoostScroll": {
+        "max_hit": 4,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    620
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "timeout": 3000,
+        "next": ["PowerBoostPanel"]
+    },
+    "PowerBoostShop": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    190,
+                    120,
+                    60
+                ],
+                "expected": ["月卡礼包"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "rate_limit": 500,
+        "next": [
+            "PowerBoostGift",
+            "PowerBoostShopScroll",
+            "PowerBoostHome"
+        ]
+    },
+    "PowerBoostShopScroll": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    190,
+                    120,
+                    60
+                ],
+                "expected": ["月卡礼包"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    560
+                ],
+                "end": [
+                    640,
+                    220
+                ],
+                "duration": 500
+            }
+        },
+        "timeout": 3000,
+        "next": ["PowerBoostShop"]
+    },
+    "PowerBoostGift": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    980,
+                    180,
+                    220,
+                    400
+                ],
+                "expected": [
+                    "×0",
+                    "x0",
+                    "X0"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    47,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2000,
+        "next": ["PowerBoostConfirm"]
+    },
+    "PowerBoostConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    380,
+                    240,
+                    60
+                ],
+                "expected": ["是否购买零时馈礼"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    522,
+                    458
+                ]
+            }
+        },
+        "timeout": 4000,
+        "next": ["PowerBoostBought"],
+        "on_error": ["PowerBoostHome"]
+    },
+    "PowerBoostBought": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    270,
+                    200,
+                    60
+                ],
+                "expected": ["购买成功"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    639,
+                    446
+                ]
+            }
+        },
+        "timeout": 6000,
+        "next": ["PowerBoostHome"]
+    },
+    "PowerBoostDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["PowerBoostHome"]
+    },
+    "PowerBoostHome": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    50
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 15000,
+        "next": []
+    }
+}

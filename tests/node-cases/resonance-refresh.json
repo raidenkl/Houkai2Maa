@@ -1,0 +1,45 @@
+{
+    "configs": {
+        "name": "resonance-refresh",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "panel-resonance.png",
+            "hits": [
+                "ResonanceRefreshPanel",
+                "ResonanceRefreshFind",
+                "ResonanceRefreshScroll",
+                "ResonanceRefreshDone",
+                "ResonanceRefreshHome"
+            ]
+        },
+        {
+            "image": "shop-refresh.png",
+            "hits": [
+                "ResonanceRefreshShop",
+                "ResonanceRefreshFree",
+                "ResonanceRefreshHome"
+            ]
+        },
+        {
+            "image": "dialog-confirm.png",
+            "hits": [
+                "ResonanceRefreshShop",
+                "ResonanceRefreshFree",
+                "ResonanceRefreshConfirm",
+                "ResonanceRefreshCancel",
+                "ResonanceRefreshHome"
+            ]
+        },
+        {
+            "image": "shop-after.png",
+            "hits": [
+                "ResonanceRefreshShop",
+                "ResonanceRefreshFree"
+            ]
+        }
+    ]
+}

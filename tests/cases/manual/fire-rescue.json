@@ -1,0 +1,27 @@
+{
+    // 火线救援：存在感列表找不到任务时滚动兜底 + 回主界面（真机录制，2026-10-18）。
+    // 录制时当天任务已完成（该行会从列表消失），因此走的是「Panel → Scroll×4 → Done」分支；
+    // 「Find → Map → Node → Prep → Quick → Confirm → Result」完整通关路径由离线 dryrun
+    // 与 node-cases 覆盖，需在 4:00 重置后补一次真机录制。
+    "case": "fire-rescue",
+    "entry": "FireRescueEntry",
+    "recording": "tests/recordings/fire-rescue/fire-rescue.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "FireRescueEntry",
+            "FireRescuePanel",
+            "FireRescueScroll",
+            "FireRescuePanel",
+            "FireRescueScroll",
+            "FireRescuePanel",
+            "FireRescueScroll",
+            "FireRescuePanel",
+            "FireRescueScroll",
+            "FireRescuePanel",
+            "FireRescueDone",
+            "FireRescueHome"
+        ],
+        "max_steps": 60
+    }
+}

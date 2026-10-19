@@ -86,4 +86,5 @@ def test_template_saved_with_expected_size(tmp_path: Path, monkeypatch: pytest.M
     saved = image_dir / "demo" / "btn.png"
     assert saved.is_file()
     assert Image.open(saved).size == (120, 60)
-    assert payload["saved"].endswith("demo/btn.png")
+    # 路径分隔符随平台变化（Windows 为 \），只断言末尾两段
+    assert Path(payload["saved"]).parts[-2:] == ("demo", "btn.png")

@@ -1,0 +1,16 @@
+{
+    // 使魔探险（日常）：领取已完成的探险奖励，并把可接取的探险派出去。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "FamiliarExplore",
+            "label": "使魔探险",
+            "entry": "FamiliarExploreEntry",
+            "default_check": true,
+            "description": "打开主界面左侧「使魔探险」，领取已完成的探险奖励，再用一键派遣把可接取的探险全部派出。需要从主界面开始。",
+            "group": [
+                "daily"
+            ]
+        }
+    ]
+}

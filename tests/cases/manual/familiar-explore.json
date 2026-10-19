@@ -1,0 +1,21 @@
+{
+    // 使魔探险：领取已完成探险 + 一键派遣可接取探险 + 列表滚动（真机录制，2026-10-18）。
+    // 本次录制时列表里已没有可领/可派的卡片，因此走的是「Panel → Scroll×4 → Done」分支；
+    // 「Select → Dispatch → Depart」路径由 tests/node-cases/familiar-explore.json 做节点级覆盖。
+    "case": "familiar-explore",
+    "entry": "FamiliarExploreEntry",
+    "recording": "tests/recordings/familiar-explore/familiar-explore.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "FamiliarExploreEntry",
+            "FamiliarExploreTab",
+            "FamiliarExplorePanel",
+            "FamiliarExploreScroll",
+            "FamiliarExplorePanel",
+            "FamiliarExploreScroll",
+            "FamiliarExploreDone"
+        ],
+        "max_steps": 60
+    }
+}

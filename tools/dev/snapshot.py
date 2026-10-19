@@ -69,7 +69,8 @@ def load_image(path: Path) -> numpy.ndarray:
     return rgb[:, :, ::-1].copy()
 
 
-def capture_from_device(address: str | None, adb_path: str | None) -> numpy.ndarray:
+def capture_from_device(address: str | None, adb_path: str | None) -> tuple[numpy.ndarray, object]:
+    """连接设备并截一张 720p 图。返回 (image, controller)，controller 供 Tasker 绑定。"""
     try:
         from maa.controller import AdbController
         from maa.toolkit import Toolkit
@@ -100,7 +101,7 @@ def capture_from_device(address: str | None, adb_path: str | None) -> numpy.ndar
     image = controller.post_screencap().wait().get()
     if image is None:
         raise SystemExit("截图失败")
-    return image
+    return image, controller
 
 
 def draw_grid(image: numpy.ndarray, step: int = 100) -> numpy.ndarray:
@@ -194,9 +195,12 @@ def main(argv: list[str] | None = None) -> int:
         if not source.is_file():
             raise SystemExit(f"图片不存在：{source}")
         image = load_image(source)
+        # 离线分析时把图片本身当作「设备」
+        controller = StaticImageController([image], cycle=False)
+        controller.post_connection().wait()
         stem = f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-{source.stem}"
     else:
-        image = capture_from_device(args.address, args.adb)
+        image, controller = capture_from_device(args.address, args.adb)
         stem = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     height, width = image.shape[:2]
@@ -206,11 +210,8 @@ def main(argv: list[str] | None = None) -> int:
     print("识别文字 ...", file=sys.stderr)
     Tasker.set_stdout_level(LoggingLevelEnum.Fatal)
     tasker = Tasker()
-    # 识别需要 Tasker 绑定资源与控制器；离线分析时把图片本身当作「设备」
-    if args.image:
-        controller = StaticImageController([image], cycle=False)
-        controller.post_connection().wait()
-        tasker.bind(resource, controller)
+    # 识别需要 Tasker 绑定资源与控制器（设备模式同样必须绑定，否则 Tasker 未初始化、OCR 静默返回空）
+    tasker.bind(resource, controller)
     task_detail = tasker.post_recognition(JRecognitionType.OCR, JOCR(roi=roi), image).wait().get()
     detail = None
     if task_detail is not None:
@@ -218,6 +219,8 @@ def main(argv: list[str] | None = None) -> int:
             if node.recognition is not None:
                 detail = node.recognition
                 break
+    if detail is None:
+        print("[warn] OCR 未返回结果（Tasker/资源未就绪？），后续产物将是空的", file=sys.stderr)
 
     entries: list[dict] = []
     if detail is not None:

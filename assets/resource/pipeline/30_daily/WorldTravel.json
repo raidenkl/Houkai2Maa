@@ -1,0 +1,340 @@
+{
+    // 世界这么大（日常）：把「虚轴之庭」的今日免费次数用快捷战斗刷完。
+    // 流程（实测 2026-10-19，1280x720，MuMu 官服）：主界面左栏首个图标 → 存在感页签
+    //   → 找到「世界这么大」→ 同行「前往」→ 虚轴之庭关卡选择页 →「出击」
+    //   → 关卡详情页「快捷战斗」→ 确认（默认 3 次）→ 战斗结算「确定」→ 回详情页
+    //   → 免费次数还有就继续，没有就收尾回主界面。
+    // 关键事实：
+    //   1) 任务描述是「挑战一次虚轴之庭的任意关卡」，完成后该行从存在感列表消失，
+    //      所以找不到即当天已完成，下滑 4 次后正常收尾；
+    //   2) 「前往」用 target_offset (570,60) 绑定标题，与同列表其它任务一致（列表顺序会变）；
+    //   3) 「出击」是动态发光的三角形按钮，OCR 读不出文字，位置固定在 (685,518)；
+    //   4) 快捷战斗一次 = 3 场，结算页分条列出再给总计；免费 6 次正好两轮；
+    //   5) 免费次数用完后「今日免费 6/6」整行消失，改显示「消耗体力 35」，
+    //      同时「快捷战斗」按钮消失（只剩灰的「选择助战好友」），这就是收尾信号；
+    //   6) 关卡会随进度换名（阿兹塔·碎岩 → 阿兹塔·大地），界面结构不变，故不写死关卡名。
+    "WorldTravelEntry": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "WorldTravelPanel",
+            "WorldTravelTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "WorldTravelTab": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    195,
+                    150,
+                    75
+                ],
+                "expected": ["存在感"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["WorldTravelPanel"]
+    },
+    "WorldTravelPanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "WorldTravelFind",
+            "WorldTravelScroll",
+            "WorldTravelDone"
+        ]
+    },
+    "WorldTravelFind": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    250,
+                    780,
+                    430
+                ],
+                "expected": ["世界这么大"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    570,
+                    60,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2000,
+        "next": ["WorldTravelStage"]
+    },
+    "WorldTravelScroll": {
+        "max_hit": 4,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    620
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "timeout": 3000,
+        "next": ["WorldTravelPanel"]
+    },
+    "WorldTravelStage": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1050,
+                    120,
+                    230,
+                    70
+                ],
+                "expected": ["虚轴之庭"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    685,
+                    518
+                ]
+            }
+        },
+        "timeout": 10000,
+        "next": ["WorldTravelDetail"],
+        "on_error": ["WorldTravelHome"]
+    },
+    "WorldTravelDetail": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    610,
+                    300,
+                    70
+                ],
+                "expected": ["选择助战好友"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "rate_limit": 500,
+        "next": [
+            "WorldTravelQuick",
+            "WorldTravelNoFree"
+        ]
+    },
+    "WorldTravelQuick": {
+        "max_hit": 4,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    600,
+                    300,
+                    100
+                ],
+                "expected": ["快捷战斗"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000,
+        "next": ["WorldTravelConfirm"]
+    },
+    "WorldTravelConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    235,
+                    220,
+                    70
+                ],
+                "expected": ["快捷战斗"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    558,
+                    471
+                ]
+            }
+        },
+        "timeout": 4000,
+        "next": ["WorldTravelResult"],
+        "on_error": ["WorldTravelHome"]
+    },
+    "WorldTravelResult": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    100,
+                    400,
+                    60
+                ],
+                "expected": ["战斗结算"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 25000,
+        "next": ["WorldTravelResultOk"],
+        "on_error": ["WorldTravelHome"]
+    },
+    "WorldTravelResultOk": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    700,
+                    580,
+                    220,
+                    80
+                ],
+                "expected": ["确定"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 4000,
+        // 结算页是半透明盖在关卡页上的，点「确定」后如果还没关干净，
+        // 下面的「选择助战好友 / 快捷战斗」会被误判成已回到详情页（实测背景文字仍可 OCR）。
+        // 所以先看一眼「战斗结算」还在不在：还在就再点一次确定（靠 max_hit 收敛）。
+        "next": [
+            "WorldTravelResult",
+            "WorldTravelDetail",
+            "WorldTravelHome"
+        ]
+    },
+    "WorldTravelNoFree": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    570,
+                    300,
+                    60
+                ],
+                "expected": ["消耗体力"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["WorldTravelHome"]
+    },
+    "WorldTravelDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["WorldTravelHome"]
+    },
+    "WorldTravelHome": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    50
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": []
+    }
+}

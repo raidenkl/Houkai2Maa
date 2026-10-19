@@ -1,0 +1,159 @@
+{
+    // 启动游戏（登录链）：桌面上启动客户端 → 标题画面「抚摸屏幕继续」→ 清理登录弹窗
+    // → 主界面左栏图标可点击。业务玩法（签到等）不写在这里，通过 next 引用 30_daily 的节点。
+    // 流程（实测 2026-10-19，1280x720，MuMu 官服）：
+    //   1) 桌面 → Shell+monkey 拉起客户端 → miHoYo logo「检查资源文件更新：100%」（20~90s）→ 标题画面；
+    //   2) 标题画面点「抚摸屏幕继续」→ 直接进主界面（无额外加载页）；
+    //   3) 登录后弹窗顺序：每日签到 → 连登福利 → 活动广告 ×N → 公告板 → 主界面可交互；
+    //      签到已领时不再弹签到，活动广告与公告板仍可能出现；
+    //   4) 弹窗存在时左栏被遮罩压平（模板分 ≤0.37），主界面可交互时 0.95，
+    //      故用左栏图标模板作为「已就绪」判据，并放在分流首位（不命中才去清弹窗）。
+    // 已知限制：登录界面（账号登录）尚未采集，暂不做登录检测；签到 7 天全领完的形态待补。
+    "LaunchGameEntry": {
+        "max_hit": 1,
+        // 入口必须无条件命中：桌面（launcher）上没有任何游戏文案，用识别做入口会直接判失败。
+        // 命中后用 next 分流：标题画面 → 点进入；已在游戏内 → 直接去清弹窗；都没有 → 启动客户端。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "LaunchGameTitle",
+            "LaunchGameHub",
+            "LaunchGameStart",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "LaunchGameStart": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "DirectHit"
+        },
+        // StartApp 在 ADB 控制器上只带 package 时无法解析 activity（实测 2026-10-19 直接失败），
+        // 改为 monkey 拉 LAUNCHER 入口，等价于点桌面图标。
+        "action": {
+            "type": "Shell",
+            "param": {
+                "cmd": "monkey -p com.miHoYo.HSoDv2Original -c android.intent.category.LAUNCHER 1"
+            }
+        },
+        "next": [
+            "LaunchGameTitle",
+            "LaunchGameHub"
+        ]
+    },
+    "LaunchGameTitle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    600,
+                    500,
+                    110
+                ],
+                "expected": ["抚摸屏幕继续"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        // 冷启动要过 miHoYo logo + 「检查资源文件更新」（实测 20~90s 波动，视模拟器负载），
+        // 再把标题画面的「抚摸屏幕继续」等出来，所以给足 3 分钟。
+        "timeout": 180000,
+        "rate_limit": 1000,
+        "next": ["LaunchGameHub"]
+    },
+    "LaunchGameHub": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    20,
+                    1280,
+                    120
+                ],
+                "expected": [
+                    "首页",
+                    "活动公告"
+                ]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 60000,
+        "rate_limit": 500,
+        "next": [
+            "LaunchGameReady",
+            "[JumpBack]LaunchGameCloseAd",
+            "[JumpBack]LaunchGameCloseNotice",
+            "[JumpBack]DailySignInClaim",
+            "[JumpBack]DailySignInEvent",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "LaunchGameCloseAd": {
+        "max_hit": 6,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "00_launch/LaunchGame/close_ad.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 1500,
+        "next": []
+    },
+    "LaunchGameCloseNotice": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    60,
+                    40,
+                    420,
+                    70
+                ],
+                "expected": ["活动公告"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1169,
+                    78
+                ]
+            }
+        },
+        "timeout": 1500,
+        "next": []
+    },
+    "LaunchGameReady": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 30000,
+        "next": []
+    }
+}

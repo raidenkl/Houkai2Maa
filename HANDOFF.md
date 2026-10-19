@@ -4,7 +4,7 @@
 > 本文件自包含，不依赖之前会话的对话历史。项目根另有 `AGENTS.md`（会被自动加载）
 > 与 `docs/zh_cn/develop/phase_status.md`（进度快照），本文件是它们的汇总与补充。
 
-最后更新：重构进行至「Phase 0 完成、Phase 1 的 Agent/工具/契约就绪，日常节点等待游戏事实」。
+最后更新：2026-10-19，启动/登录链 + 3 个日常玩法已真机跑通；邮件/社团/刷本等待游戏事实。
 
 ---
 
@@ -17,9 +17,13 @@
 - **基准**：Android ADB 优先；所有 ROI/模板/坐标按 **1280×720（16:9）**；
   `interface.json` 的 `display_short_side` 固定 720。
 - **当前可跑通**：`npm run verify` 全绿（73 个 pytest、pipeline lint 0 error/1 allowed、
-  schema、replay、ruff、prettier）。阵营战（旧功能）保留在 `90_activity/`。
-- **当前阻塞**：日常玩法节点（`00_launch`/`10_common`/`20_nav`/`30_daily`）需要**真实
-  游戏截图与流程**才能写；在此之前不要编造坐标/文案。详见 §6。
+  schema、replay、ruff、prettier）。**已真机跑通 6 条链路**：
+  「启动游戏」（桌面→标题→领签到→关活动/公告→主界面可交互）、「使魔探险」（含列表滚动）、
+  「共鸣之力」（共鸣屋免费刷新）、「火线救援」（多元裂缝·使魔的爱）、
+  「世界这么大」（虚轴之庭快捷战斗刷完免费次数）、「战力补强」（礼包商店买免费礼包），
+  各带回放用例；阵营战（旧功能）保留在 `90_activity/`。
+- **当前阻塞**：邮件/社团/刷本三类日常仍缺真实截图与流程；账号登录界面、签到 7 天全领完的
+  形态也未采集。在此之前不要编造坐标/文案。详见 §6。
 
 ---
 
@@ -79,11 +83,13 @@ assets/interface.json            # PI v2：controller / resource / group / task 
 assets/resource/
 ├── default_pipeline.json        # 全局默认参数（rate_limit 300、无默认延迟、TM 0.85、OCR 0.4）
 ├── pipeline/
-│   ├── 00_launch/README.md      # 启动/登录契约（暂无节点）
-│   ├── 10_common/README.md      # 通用按钮/弹窗契约（暂无节点，等模板）
-│   ├── 20_nav/README.md         # 导航契约（暂无节点）
-│   ├── 30_daily/README.md       # 日常契约（暂无节点）
-│   └── 90_activity/FactionWar.json   # 唯一现有业务：阵营战（旧脚本迁移版）
+│   ├── 00_launch/LaunchGame.json    # 启动→标题→领签到→关弹窗→主界面就绪
+│   ├── 10_common/CommonPopup.json   # 通用「获得奖励」弹窗
+│   ├── 20_nav/README.md             # 导航契约（暂无节点）
+│   ├── 30_daily/*.json              # FamiliarExplore / ResonanceRefresh / FireRescue / SignIn
+│   └── 90_activity/FactionWar.json  # 阵营战（旧脚本迁移版）
+├── image/30_daily/<Task>/*.png      # 720p 模板（按玩法分目录）
+├── image/00_launch/LaunchGame/*.png # 活动弹窗关闭按钮
 ├── image/{双倍.png,双倍体力兑换.png}  # 阵营战模板（1080p 时代裁的，待按 720p 重拍）
 └── model/ocr/                   # gitignore；由 tools/configure.py 生成
 assets/tasks/                    # PI import 片段（★ 路径相对 interface.json 所在目录）
@@ -148,10 +154,49 @@ AGENTS.md                        # 项目指南（DSH/Claude 自动加载）
   （`FactionWarDouble` 开关 → `pipeline_override`）
 - 安装包自检：`install/interface.json` 的 import / pretask.args / agent.child_args 必须可解析
 - 阵营战去掉 30s 固定等待（`timeout=120000 + rate_limit=2000` 识别驱动），删除 E105 豁免
-- 未完成：阵营战 720p 模板重拍（需要 720p 截图，步骤见 `game_facts.md` §8）、
+- 未完成：阵营战 720p 模板重拍（需要 720p 截图，步骤见 `game_facts.md` §11）、
   日常任务的 option/global_option/setting（要有节点才有意义）
 
-### Phase 2 / 3 / 5 ⛔
+### Phase 2 — 日常节点 🟡（已打通第一个）
+
+- **使魔探险**（`30_daily/FamiliarExplore.json`，2026-10-18 真机实测）：
+  主界面左栏图标 → 使魔探险页签 → 领取已完成 → 点击选择使魔 → 一键派遣 → 出发，
+  全流程 16 个节点跑通；回放用例在 `tests/cases/manual/familiar-explore.json`（手动跑，见下）。
+- 顺带落地 `10_common/CommonPopup.json`（`CommonRewardPopup`），日常入口的
+  `[JumpBack]` 兜底不再依赖豁免。
+- **使魔探险支持列表滚动**（2026-10-18）：找不到可领/可派卡片时下滑，最多 4 次后收尾，
+  滑到底也能正确结束（`Done` 的 ROI 已放宽到 `[600,108,680,92]`，见 `game_facts.md` §6.4）。
+- **共鸣之力**（`30_daily/ResonanceRefresh.json`，2026-10-18 真机实测）：
+  存在感页签 → 找到「共鸣之力」→ 同行「前往」→ 共鸣屋刷新 → 确定 → 回主界面，
+  回放用例在 `tests/cases/manual/resonance-refresh.json`（见 `game_facts.md` §7）。
+- **火线救援**（`30_daily/FireRescue.json`，2026-10-18 真机实测）：
+  存在感页签 → 找到「火线救援」→ 同行「前往」→ 多元裂缝地图 → 点「使魔的爱」下方图标
+  → 快捷战斗 → 确定 → 结算确定 → 回主界面。该关卡图标是动态发光体、模板匹配不稳，
+  改为 OCR 标签 + 向下偏移 84px 点击；回放用例在 `tests/cases/manual/fire-rescue.json`
+  （见 `game_facts.md` §8）。
+- **启动游戏 / 登录链**（`00_launch/LaunchGame.json` + `30_daily/SignIn.json`，
+  2026-10-19 真机实测）：桌面 `Shell`+`monkey` 启动 → 标题画面「抚摸屏幕继续」→
+  每日签到 / 连登福利点「领取」→ 活动广告 ×N（模板匹配右上蓝色 ×）→ 公告板大 × →
+  左栏图标可点击判定结束。回放用例 `tests/cases/manual/launch-game.json`，
+  节点回归 `tests/node-cases/launch-game.json`（见 `game_facts.md` §12）。
+  踩坑：入口必须 `DirectHit`（桌面无任何文案，OCR 入口会直接失败）、`StartApp` 只填
+  package 不可用、标题文案延迟出现需 180s 超时。
+- **世界这么大**（`30_daily/WorldTravel.json`，2026-10-19 真机实测）：
+  存在感列表 →「世界这么大」→ 同行「前往」→ 虚轴之庭选关 →「出击」→ 关卡详情
+  →「快捷战斗」（一次 3 场）→ 结算确定 → 免费次数刷完（`今日免费 6/6` 消失、
+  改显示「消耗体力 35」，快捷战斗按钮消失）→ 回主界面。回放用例
+  `tests/cases/manual/world-travel.json`（录制时当天已刷完，走的是收尾分支），
+  完整战斗链路由 dryrun 17 节点序列 + `tests/node-cases/world-travel.json` 覆盖
+  （见 `game_facts.md` §13）。
+- **战力补强**（`30_daily/PowerBoost.json`，2026-10-19 真机实测）：
+  存在感列表 →「战力补强」→ 前往 → 商店·礼包页 → 下滑 →「零时馈礼」（价格 ×0，
+  每日限购 1/1）→ 购买 → 确认 →「购买成功」确定 → 回主界面。回放用例
+  `tests/cases/manual/power-boost.json`（录制时当天已买过，走的是收尾分支），
+  购买分支由 dryrun 10 节点序列 + `tests/node-cases/power-boost.json` 覆盖
+  （见 `game_facts.md` §14）。价格不是 0 时节点不会命中，任务会安全停下。
+- 其余日常（邮件/社团/刷本）仍缺事实。
+
+### Phase 3 / 5 ⛔
 
 全部依赖真实界面事实（见 §6）。
 
@@ -199,7 +244,7 @@ npm run verify
 | `npm run lint:py` / `format:py`         | ruff 检查 / 格式检查（`tools/dev/run_ruff.py`）                  | 否       |
 | `npm run schema`                        | JSON Schema（interface + pipeline + `--task-dirs assets/tasks`） | 否       |
 | `npm run test`                          | pytest：`assets/agent/tests`（35）+ `tools/tests`（38）= 73 项   | 否       |
-| `npm run replay`                        | 回放 `tests/cases/*.json`（目前只有 fixture 用例）               | 否       |
+| `npm run replay`                        | 回放 `tests/cases/*.json`（一级目录，目前只有 smoke）            | 否       |
 | `npm run format` / `format:check`       | prettier（含 pipeline 字段排序插件）                             | 否       |
 | `npm run release:check -- --tag vX.Y.Z` | 版本/tag 一致性、路径、工作区                                    | 否       |
 
@@ -320,12 +365,23 @@ python tools/dev/record.py --case signin --entry DailySignInEntry
 
 ### 6.3 建议的推进顺序
 
+> **回放为何分目录**：`ReplayController` 要求截图/动作逐帧严格对齐，而「找不到就等/往下翻」
+> 的流程每次识别重试与 `*_wait_freezes` 的截图次数会随机器速度浮动，必然偶发
+> `record type mismatch`。所以这类用例放 `tests/cases/manual/`，不进 `npm run verify`；
+> 确定性覆盖交给 `tests/node-cases/` + `tools/dev/dryrun.py`。
+
+> **参考实现**：`30_daily/FamiliarExplore.json` 已经走通「入口图标 → 页签 → 列表分状态 →
+> 子界面操作 → 循环 + `max_hit` 收敛」全套，新增日常玩法时照着这份改最快。
+> 每一步的实测坐标/文案都在 `game_facts.md` §6；同目录的 `ResonanceRefresh.json` 是第二个样例，
+> 演示了「用 `target_offset` 绑定列表行内按钮」和「靠 OCR 自然等待瞬时横幅消失」两个套路。
+
 1. `10_common`：确认/取消/关闭/返回/加载/通用弹窗（用真实截图裁模板）→ 解除 E203 豁免；
 2. `20_nav`：`NavHomeFlag` / `NavHome` / 各入口；
-3. `00_launch`：启动（`StartApp` 失败回落 `Shell` + `monkey -p`）、登录检测（命中即 `StopTask`）；
-4. `30_daily/SignIn`（最简单，打通闭环）→ `Mail` / `ClubWelfare`；
+3. `00_launch` ✅ 启动（`Shell` + `monkey`）+ 登录后弹窗清理已跑通；**登录界面检测待补**
+   （需要账号登录界面的截图，命中即 `StopTask`）；
+4. `30_daily/SignIn` ✅ 两条签到弹窗（每日签到 / 连登福利）已跑通；`Mail` / `ClubWelfare` 待做；
 5. `30_daily/Farm`：`FarmLoop`/`FarmNote`/`FarmFail` 已就位，补节点与 option；
-6. 阵营战 720p 模板重拍（`game_facts.md` §8）；
+6. 阵营战 720p 模板重拍（`game_facts.md` §11）；
 7. Phase 5：真机 20 次回归 → `release.md` 流程发 `v2.0.0`。
 
 ---
@@ -348,9 +404,11 @@ python tools/dev/record.py --case signin --entry DailySignInEntry
 | 项                                           | 位置                          | 处理                                             |
 | -------------------------------------------- | ----------------------------- | ------------------------------------------------ |
 | 阵营战缺通用弹窗兜底（E203 豁免）            | `tools/lint/allowlist.json`   | `10_common` 建好后删除                           |
-| 阵营战模板仍是 1080p 时代裁的                | `assets/resource/image/*.png` | 按 `game_facts.md` §8 重拍                       |
-| 回放用例只有 smoke 夹具                      | `tests/cases/`                | 有设备后录真实用例                               |
-| Win32 控制器未验证（窗口类名/截图方式）      | `assets/interface.json`       | 按 `game_facts.md` §7 实测后转正或移除           |
+| 账号登录界面未采集，`LaunchGame` 无登录检测  | `00_launch/LaunchGame.json`   | 换账号时截图，补「命中即 `StopTask`」分支        |
+| 签到 7 天全领完 / 奖励重置后的形态未采集     | `30_daily/SignIn.json`        | 跨周实测后补「已领取」分支（当前靠当天不再弹窗） |
+| 阵营战模板仍是 1080p 时代裁的                | `assets/resource/image/*.png` | 按 `game_facts.md` §11 重拍                      |
+| 真实流程的回放用例放在 `tests/cases/manual/` | 搜索型流程回放会随机漂移      | `replay.py --all --cases-dir tests/cases/manual` |
+| Win32 控制器未验证（窗口类名/截图方式）      | `assets/interface.json`       | 按 `game_facts.md` §10 实测后转正或移除          |
 | `pnpm-lock.yaml` 过期                        | 仓库根                        | 如改用 pnpm 请重新生成；当前以 npm 为准          |
 | 子模块 `assets/MaaCommonAssets` 本机未初始化 | `.gitmodules`                 | CI 用 submodules；本地由 `configure.py` 回退下载 |
 

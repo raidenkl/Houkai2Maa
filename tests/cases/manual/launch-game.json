@@ -1,0 +1,23 @@
+{
+    // 启动游戏（真机录制，2026-10-19，MuMu 官服 1280x720）。
+    // 本次录制时「每日签到 / 连登福利」已领完，因此走的是
+    // 「Start → Title → 活动广告 ×2 → 主界面就绪」分支；签到分支由
+    // tests/node-cases/launch-game.json 做节点级覆盖（DailySignInClaim / DailySignInEvent）。
+    // 该流程含「等资源检查 100%」「等标题画面文案出现」等长等待，回放耗时不稳定，故放 manual。
+    "case": "launch-game",
+    "entry": "LaunchGameEntry",
+    "recording": "tests/recordings/launch-game/launch-game.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "LaunchGameEntry",
+            "LaunchGameStart",
+            "LaunchGameTitle",
+            "LaunchGameHub",
+            "LaunchGameCloseAd",
+            "LaunchGameCloseAd",
+            "LaunchGameReady"
+        ],
+        "max_steps": 40
+    }
+}

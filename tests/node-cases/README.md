@@ -37,6 +37,10 @@ npm run nodecase -- --node NavHomeFlag --node DailySignInButton --images shots/h
 
 缺少截图时工具会打印 `not exists, ignored` 并跳过该用例。
 
+> ⚠️ `screens/` 已写进 `.gitignore`：截图是可再生产物，体积大，不做版本管理。
+> 后果是**新克隆的仓库里所有 node-case 都会被静默跳过**，`npm run test:node` 会假绿。
+> 换机器后先按上面的命令重出一遍截图，再把它当作有效回归依据。
+
 ## 截图要求
 
 - 必须是 **1280×720**（16:9），与 `display_short_side: 720` 一致；

@@ -1,0 +1,16 @@
+{
+    // 共鸣之力（日常）：在「共鸣屋」里用免费次数刷新一次商品，完成「共鸣之力」任务。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "ResonanceRefresh",
+            "label": "共鸣之力",
+            "entry": "ResonanceRefreshEntry",
+            "default_check": true,
+            "description": "打开主界面左侧「存在感」，下滑找到「共鸣之力」，点「前往」进共鸣屋并刷新一次商品。只在还有免费次数时刷新，剩余次数为 0 时跳过（不会消耗水晶）。任务完成后回到主界面。需要从主界面开始。",
+            "group": [
+                "daily"
+            ]
+        }
+    ]
+}

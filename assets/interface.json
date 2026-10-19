@@ -71,6 +71,12 @@
     },
     "group": [
         {
+            "name": "launch",
+            "label": "启动",
+            "description": "启动客户端、进入游戏、清理登录弹窗",
+            "default_expand": true
+        },
+        {
             "name": "daily",
             "label": "日常",
             "description": "每天需要完成的玩法",
@@ -91,7 +97,13 @@
     ],
     "task": [],
     "import": [
-        "tasks/activity/FactionWar.json"
+        "tasks/launch/LaunchGame.json",
+        "tasks/activity/FactionWar.json",
+        "tasks/daily/FamiliarExplore.json",
+        "tasks/daily/FireRescue.json",
+        "tasks/daily/ResonanceRefresh.json",
+        "tasks/daily/WorldTravel.json",
+        "tasks/daily/PowerBoost.json"
     ],
     "preset": [
         {

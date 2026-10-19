@@ -3,6 +3,23 @@
 本目录下的 `*.json` 会在 `python tools/dev/replay.py --all` 时被读取，
 用于**离线回放**已经录制好的任务执行（无需设备）。
 
+## `manual/` 子目录：不进 `--all` 的用例
+
+`replay.py --all` 只扫本目录**一级**的 `*.json`。带「找不到就等/往下翻」搜索行为的流程
+（例如 `30_daily/FamiliarExplore`、`30_daily/ResonanceRefresh`）放在 `manual/` 下：
+这类流程每次运行时识别重试与 `*_wait_freezes` 的截图次数会随机器速度浮动，
+而 `ReplayController` 要求截图/动作序列逐帧严格对齐，跑几次就会撞上一次
+`record type mismatch`，会把这个门禁变成随机失败。
+
+需要时手动跑：
+
+```bash
+python tools/dev/replay.py --all --cases-dir tests/cases/manual
+```
+
+这类流程的确定性覆盖由 `tests/node-cases/*.json`（逐节点识别断言）+
+`tools/dev/dryrun.py`（固定截图序列跑流程结构）负责。
+
 ## 文件格式
 
 ```jsonc

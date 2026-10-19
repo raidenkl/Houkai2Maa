@@ -1,0 +1,51 @@
+{
+    "configs": {
+        "name": "familiar-explore",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "before-run.png",
+            "hits": [
+                "FamiliarExploreEntry"
+            ]
+        },
+        {
+            "image": "panel1.png",
+            "hits": [
+                "FamiliarExplorePanel",
+                "FamiliarExploreClaim",
+                "FamiliarExploreTab",
+                "FamiliarExploreDone"
+            ]
+        },
+        {
+            "image": "dispatch1.png",
+            "hits": [
+                "FamiliarExploreDispatch",
+                "FamiliarExploreDepart"
+            ]
+        },
+        {
+            "image": "claim1.png",
+            "hits": [
+                "FamiliarExplorePanel",
+                "FamiliarExploreClaim",
+                "FamiliarExploreReward",
+                "FamiliarExploreTab",
+                "FamiliarExploreDone"
+            ]
+        },
+        {
+            "image": "claimC.png",
+            "hits": [
+                "FamiliarExplorePanel",
+                "FamiliarExploreSelect",
+                "FamiliarExploreTab",
+                "FamiliarExploreDone"
+            ]
+        }
+    ]
+}

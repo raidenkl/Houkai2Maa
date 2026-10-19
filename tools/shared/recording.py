@@ -103,9 +103,28 @@ def validate_recording(path: str | Path) -> RecordingSummary:
 
     if not summary.has_connect:
         summary.errors.append("缺少 connect 记录（无法确定设备分辨率）")
+    if summary.resolution is None:
+        # 部分设备（如 MuMu）connect 记录里 width/height 为 0，退回读首张截图的真实尺寸
+        for screenshot in summary.screenshots:
+            size = _png_size(screenshot)
+            if size is not None:
+                summary.resolution = size
+                break
     if not summary.has_screencap:
         summary.errors.append("没有任何 screencap 记录（回放时没有画面可识别）")
     return summary
+
+
+def _png_size(path: Path) -> tuple[int, int] | None:
+    """读 PNG 头拿宽高；非 PNG 或读不到时返回 None。"""
+    try:
+        with path.open("rb") as handle:
+            header = handle.read(24)
+    except OSError:
+        return None
+    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
 
 
 def _parse_line(line: str, lineno: int, summary: RecordingSummary) -> dict[str, Any] | None:

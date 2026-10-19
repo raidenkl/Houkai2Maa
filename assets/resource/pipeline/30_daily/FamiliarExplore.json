@@ -1,0 +1,246 @@
+{
+    "FamiliarExploreEntry": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "FamiliarExploreTab",
+            "FamiliarExplorePanel",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "FamiliarExploreTab": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    345,
+                    145,
+                    70
+                ],
+                "expected": ["使魔探险"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["FamiliarExplorePanel"]
+    },
+    "FamiliarExplorePanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    125,
+                    360,
+                    55
+                ],
+                "expected": ["已接取的探险数"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "FamiliarExploreClaim",
+            "FamiliarExploreSelect",
+            "FamiliarExploreScroll",
+            "FamiliarExploreDone"
+        ]
+    },
+    "FamiliarExploreClaim": {
+        "max_hit": 12,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    150,
+                    380,
+                    560
+                ],
+                "expected": ["点击领取奖励"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2500,
+        "next": ["FamiliarExploreReward"],
+        "on_error": ["FamiliarExploreSelect"]
+    },
+    "FamiliarExploreReward": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": ["获得奖励"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    640,
+                    560
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                200,
+                140,
+                900,
+                300
+            ]
+        },
+        "timeout": 3000,
+        "next": ["FamiliarExplorePanel"]
+    },
+    "FamiliarExploreSelect": {
+        "max_hit": 6,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    150,
+                    380,
+                    560
+                ],
+                "expected": ["点击选择使魔"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2500,
+        "next": ["FamiliarExploreDispatch"],
+        "on_error": ["FamiliarExploreDone"]
+    },
+    "FamiliarExploreDispatch": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    580,
+                    360,
+                    90
+                ],
+                "expected": ["派遣"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                480,
+                148,
+                380,
+                95
+            ]
+        },
+        "timeout": 5000,
+        "next": ["FamiliarExploreDepart"],
+        "on_error": ["FamiliarExplorePanel"]
+    },
+    "FamiliarExploreDepart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    960,
+                    580,
+                    320,
+                    90
+                ],
+                "expected": ["出发"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["FamiliarExplorePanel"]
+    },
+    "FamiliarExploreScroll": {
+        "max_hit": 4,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    125,
+                    360,
+                    55
+                ],
+                "expected": ["已接取的探险数"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    620
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "post_wait_freezes": {
+            "time": 400,
+            "target": [
+                200,
+                150,
+                850,
+                540
+            ]
+        },
+        "timeout": 3000,
+        "next": ["FamiliarExplorePanel"]
+    },
+    "FamiliarExploreDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    108,
+                    680,
+                    92
+                ],
+                "expected": ["将于每日"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 3000,
+        "next": []
+    }
+}

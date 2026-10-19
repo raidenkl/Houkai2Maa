@@ -457,10 +457,17 @@ debug
 .pip-cache/
 .npm-cache/
 .venv/
+.pytest_cache/
+.ruff_cache/
 
 # Runtime artifacts
 debug/
 .maa-tools/
+.workbuddy/
 
 # MaaFramework 在 cwd 写出的失败截图（脚本均已重定向到 debug/）
 on_error/
+
+# 可再生的回放材料（record.py / nodecase.py 随时重出，避免把上百 MB PNG 塞进版本库）
+tests/recordings/
+tests/node-cases/screens/

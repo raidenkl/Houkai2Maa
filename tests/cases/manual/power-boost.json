@@ -1,0 +1,30 @@
+{
+    // 战力补强（真机录制，2026-10-19，MuMu 官服 1280x720）。
+    // 录制时当天已买过「零时馈礼」、任务行已从存在感列表消失，因此走的是
+    // 「Entry → Panel → Scroll×4 → Done → Home」这条收尾分支；
+    // 「Find → Shop → ShopScroll → Gift → Confirm → Bought」购买分支由
+    // tools/dev/dryrun.py（10 节点序列）与 tests/node-cases/power-boost.json 覆盖。
+    // 本例是「找不到就下滑」的搜索型流程，回放要求逐帧严格对齐，识别重试次数一浮动就会
+    // record type mismatch（重跑可过），属已知限制，不进 CI。
+    "case": "power-boost",
+    "entry": "PowerBoostEntry",
+    "recording": "tests/recordings/power-boost/power-boost.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "PowerBoostEntry",
+            "PowerBoostPanel",
+            "PowerBoostScroll",
+            "PowerBoostPanel",
+            "PowerBoostScroll",
+            "PowerBoostPanel",
+            "PowerBoostScroll",
+            "PowerBoostPanel",
+            "PowerBoostScroll",
+            "PowerBoostPanel",
+            "PowerBoostDone",
+            "PowerBoostHome"
+        ],
+        "max_steps": 60
+    }
+}

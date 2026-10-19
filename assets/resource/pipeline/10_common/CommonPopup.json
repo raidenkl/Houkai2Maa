@@ -1,0 +1,30 @@
+{
+    "CommonRewardPopup": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": ["获得奖励"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    640,
+                    560
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                400,
+                200,
+                480,
+                320
+            ]
+        },
+        "next": []
+    }
+}

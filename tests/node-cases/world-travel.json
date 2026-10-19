@@ -1,0 +1,82 @@
+{
+    "configs": {
+        "name": "world-travel",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "world-confirm.png",
+            "hits": [
+                "WorldTravelStage",
+                "WorldTravelDetail",
+                "WorldTravelQuick",
+                "WorldTravelConfirm"
+            ]
+        },
+        {
+            "image": "world-detail.png",
+            "hits": [
+                "WorldTravelStage",
+                "WorldTravelDetail",
+                "WorldTravelQuick"
+            ]
+        },
+        {
+            "image": "world-detail2.png",
+            "hits": [
+                "WorldTravelStage",
+                "WorldTravelDetail",
+                "WorldTravelQuick"
+            ]
+        },
+        {
+            "image": "world-home.png",
+            "hits": [
+                "WorldTravelEntry"
+            ]
+        },
+        {
+            "image": "world-list-done.png",
+            "hits": [
+                "WorldTravelTab",
+                "WorldTravelPanel",
+                "WorldTravelDone"
+            ]
+        },
+        {
+            "image": "world-list.png",
+            "hits": [
+                "WorldTravelTab",
+                "WorldTravelPanel",
+                "WorldTravelFind",
+                "WorldTravelDone"
+            ]
+        },
+        {
+            "image": "world-nofree.png",
+            "hits": [
+                "WorldTravelStage",
+                "WorldTravelDetail",
+                "WorldTravelNoFree"
+            ]
+        },
+        {
+            "image": "world-result.png",
+            "hits": [
+                "WorldTravelDetail",
+                "WorldTravelQuick",
+                "WorldTravelResult",
+                "WorldTravelResultOk"
+            ]
+        },
+        {
+            "image": "world-stage.png",
+            "hits": [
+                "WorldTravelEntry",
+                "WorldTravelStage"
+            ]
+        }
+    ]
+}

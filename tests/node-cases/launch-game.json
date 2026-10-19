@@ -1,0 +1,65 @@
+{
+    "configs": {
+        "name": "launch-game",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "launch-ad-skin.png",
+            "hits": [
+                "LaunchGameHub",
+                "LaunchGameCloseAd"
+            ]
+        },
+        {
+            "image": "launch-ad-wish.png",
+            "hits": [
+                "LaunchGameHub",
+                "LaunchGameCloseAd"
+            ]
+        },
+        {
+            "image": "launch-home-alt.png",
+            "hits": [
+                "LaunchGameHub",
+                "LaunchGameReady"
+            ]
+        },
+        {
+            "image": "launch-home.png",
+            "hits": [
+                "LaunchGameHub",
+                "LaunchGameReady"
+            ]
+        },
+        {
+            "image": "launch-notice.png",
+            "hits": [
+                "LaunchGameHub",
+                "LaunchGameCloseNotice"
+            ]
+        },
+        {
+            "image": "launch-signin-daily.png",
+            "hits": [
+                "LaunchGameHub",
+                "DailySignInClaim"
+            ]
+        },
+        {
+            "image": "launch-signin-event.png",
+            "hits": [
+                "LaunchGameHub",
+                "DailySignInEvent"
+            ]
+        },
+        {
+            "image": "launch-title.png",
+            "hits": [
+                "LaunchGameTitle"
+            ]
+        }
+    ]
+}

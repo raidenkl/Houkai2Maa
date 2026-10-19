@@ -1,0 +1,86 @@
+{
+    "configs": {
+        "name": "fire-rescue",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "home-main.png",
+            "hits": [
+                "FireRescueEntry",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "panel-fire-rescue.png",
+            "hits": [
+                "FireRescuePanel",
+                "FireRescueFind",
+                "FireRescueScroll",
+                "FireRescueDone",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "map-multifold.png",
+            "hits": [
+                "FireRescueEntry",
+                "FireRescueMap",
+                "FireRescueNode",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "prep-fire.png",
+            "hits": [
+                "FireRescueMap",
+                "FireRescuePrep",
+                "FireRescueQuick",
+                "FireRescueBack",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "dialog-quick.png",
+            "hits": [
+                "FireRescueMap",
+                "FireRescuePrep",
+                "FireRescueQuick",
+                "FireRescueConfirm",
+                "FireRescueBack",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "result-fire.png",
+            "hits": [
+                "FireRescuePrep",
+                "FireRescueResult",
+                "FireRescueResultOk",
+                "FireRescueBack",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "prep-after-fire.png",
+            "hits": [
+                "FireRescueMap",
+                "FireRescuePrep",
+                "FireRescueBack",
+                "FireRescueNoChance",
+                "FireRescueHome"
+            ]
+        },
+        {
+            "image": "panel-fire-done.png",
+            "hits": [
+                "FireRescuePanel",
+                "FireRescueScroll",
+                "FireRescueDone",
+                "FireRescueHome"
+            ]
+        }
+    ]
+}

@@ -96,6 +96,14 @@ def ocr_ready() -> bool:
     return all((OCR_DIR / name).is_file() for name in OCR_FILES)
 
 
+def _display(path: Path) -> str:
+    """仓库内路径显示为相对形式；仓库外（如下载用的临时目录）回退为绝对路径。"""
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
 def copy_ocr_from(path: Path) -> bool:
     missing = [name for name in OCR_FILES if not (path / name).is_file()]
     if missing:
@@ -103,7 +111,7 @@ def copy_ocr_from(path: Path) -> bool:
     OCR_DIR.mkdir(parents=True, exist_ok=True)
     for name in OCR_FILES:
         shutil.copy2(path / name, OCR_DIR / name)
-    log(f"OCR 模型已从 {path.relative_to(REPO_ROOT)} 复制到 assets/resource/model/ocr")
+    log(f"OCR 模型已从 {_display(path)} 复制到 assets/resource/model/ocr")
     return True
 
 

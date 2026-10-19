@@ -1,0 +1,17 @@
+{
+    // 启动游戏（登录链）：冷启动客户端 → 点进游戏 → 领登录签到 → 关活动/公告弹窗
+    // → 主界面左栏图标可点击。签到节点在 30_daily/SignIn.json。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "LaunchGame",
+            "label": "启动游戏",
+            "entry": "LaunchGameEntry",
+            "default_check": true,
+            "description": "在桌面上启动崩坏学园2，点过标题画面，领取「每日签到」与「连登福利」，关掉活动广告和公告板，直到主界面左栏图标可以点击。客户端已在运行时不会重启，直接接着清理弹窗。",
+            "group": [
+                "launch"
+            ]
+        }
+    ]
+}

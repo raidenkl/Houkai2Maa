@@ -1,0 +1,302 @@
+{
+    // 共鸣之力（日常）：刷新一次「共鸣屋」中的商品。
+    // 流程（实测 2026-10-18，1280x720）：主界面左栏首个图标 → 存在感页签 → 找到「共鸣之力」
+    //   → 点同行「前往」→ 共鸣屋 → 右上刷新按钮 → 「你确定要进行免费刷新吗？」→ 确定 → 回主界面。
+    // 关键事实：
+    //   1) 完成后该行会从存在感列表消失，因此不会重复刷新；
+    //   2) 列表可滚动且顺序不固定，「前往」按钮用 target_offset 绑定到标题所在行，不写死行坐标；
+    //   3) 刷新后顶部弹出「共鸣之力 任务已完成」提示会盖住导航栏约 2 秒，
+    //      故 Home 节点靠识别「首页」自然等待提示消失；
+    //   4) 只剩付费刷新（剩余次数 0 次）时不点刷新，直接收尾，不消耗水晶；
+    //   5) 找不到「共鸣之力」时下滑最多 4 次后正常收尾（当天已完成的情况）。
+    "ResonanceRefreshEntry": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ResonanceRefreshPanel",
+            "ResonanceRefreshTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "ResonanceRefreshTab": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    195,
+                    150,
+                    75
+                ],
+                "expected": ["存在感"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ResonanceRefreshPanel"]
+    },
+    "ResonanceRefreshPanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "ResonanceRefreshFind",
+            "ResonanceRefreshScroll",
+            "ResonanceRefreshDone"
+        ]
+    },
+    "ResonanceRefreshFind": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    250,
+                    780,
+                    430
+                ],
+                "expected": ["共鸣之力"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    570,
+                    60,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2000,
+        "next": ["ResonanceRefreshShop"]
+    },
+    "ResonanceRefreshScroll": {
+        "max_hit": 4,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    620
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "post_wait_freezes": {
+            "time": 400,
+            "target": [
+                200,
+                250,
+                780,
+                430
+            ]
+        },
+        "timeout": 3000,
+        "next": ["ResonanceRefreshPanel"]
+    },
+    "ResonanceRefreshShop": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    820,
+                    110,
+                    270,
+                    60
+                ],
+                "expected": ["剩余次数"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 6000,
+        "next": [
+            "ResonanceRefreshFree",
+            "ResonanceRefreshNoFree"
+        ]
+    },
+    "ResonanceRefreshFree": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    820,
+                    110,
+                    270,
+                    60
+                ],
+                "expected": [
+                    "剩余次数1次",
+                    "剩余次数2次",
+                    "剩余次数3次",
+                    "剩余次数4次",
+                    "剩余次数5次"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    150,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2000,
+        "next": ["ResonanceRefreshConfirm"]
+    },
+    "ResonanceRefreshConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    330,
+                    180,
+                    600,
+                    300
+                ],
+                "expected": ["免费刷新"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    531,
+                    446
+                ]
+            }
+        },
+        "timeout": 4000,
+        "next": ["ResonanceRefreshHome"],
+        "on_error": ["ResonanceRefreshCancel"]
+    },
+    "ResonanceRefreshCancel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    330,
+                    180,
+                    600,
+                    300
+                ],
+                "expected": ["取消"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 1500,
+        "next": ["ResonanceRefreshHome"]
+    },
+    "ResonanceRefreshNoFree": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    820,
+                    110,
+                    270,
+                    60
+                ],
+                "expected": ["剩余次数0次"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 1500,
+        "next": ["ResonanceRefreshHome"]
+    },
+    "ResonanceRefreshDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["ResonanceRefreshHome"]
+    },
+    "ResonanceRefreshHome": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    50
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": []
+    }
+}

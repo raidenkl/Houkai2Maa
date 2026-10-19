@@ -2,6 +2,15 @@
 install/
 node_modules/
 
+# 本地环境与运行时产物（不进版本库，也不做格式化）
+.pylib/
+.pytest_cache/
+debug/
+.maa-tools/
+.npm-cache/
+.pip-cache/
+.workbuddy/
+
 # 子模块
 assets/MaaCommonAssets
 

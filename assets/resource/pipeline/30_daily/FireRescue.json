@@ -1,0 +1,381 @@
+{
+    // 火线救援（日常）：通关一次「多元裂缝 → 使魔的爱」。
+    // 流程（实测 2026-10-18，1280x720）：主界面左栏首个图标 → 存在感页签 → 找到「火线救援」
+    //   → 点同行「前往」→ 多元裂缝地图 → 点「使魔的爱」标签正下方的关卡图标
+    //   → 备战页「快捷战斗」→ 确认弹窗「确定」→ 战斗结算「确定」→ 回主界面。
+    // 关键事实：
+    //   1) 完成后该行会从存在感列表消失，列表顺序同时变化，故「前往」用 target_offset
+    //      绑定到标题框（实测偏移 (570,60)，与「共鸣之力」一致），不写死行坐标；
+    //   2) 「使魔的爱」下方的关卡图标是动态/发光的（模板匹配不可靠），
+    //      改为 OCR 标签文字后固定向下偏移 84px 点击；
+    //   3) 今日剩余次数用完后备战页只剩「选择助战好友」，「快捷战斗」会消失，
+    //      因此备战页以「选择助战好友」为识别标志，找不到「快捷战斗」即视为今日已打完；
+    //   4) 找不到「火线救援」时下滑最多 4 次后正常收尾。
+    "FireRescueEntry": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "FireRescuePanel",
+            "FireRescueTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "FireRescueTab": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    195,
+                    150,
+                    75
+                ],
+                "expected": ["存在感"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["FireRescuePanel"]
+    },
+    "FireRescuePanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "FireRescueFind",
+            "FireRescueScroll",
+            "FireRescueDone"
+        ]
+    },
+    "FireRescueFind": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    250,
+                    780,
+                    430
+                ],
+                "expected": ["火线救援"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    570,
+                    60,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2000,
+        "next": ["FireRescueMap"]
+    },
+    "FireRescueScroll": {
+        "max_hit": 4,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    620
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "post_wait_freezes": {
+            "time": 400,
+            "target": [
+                200,
+                250,
+                780,
+                430
+            ]
+        },
+        "timeout": 3000,
+        "next": ["FireRescuePanel"]
+    },
+    "FireRescueMap": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1050,
+                    120,
+                    230,
+                    70
+                ],
+                "expected": ["多元裂缝"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 8000,
+        "next": ["FireRescueNode"],
+        "on_error": ["FireRescueHome"]
+    },
+    "FireRescueNode": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    370,
+                    240,
+                    60
+                ],
+                "expected": ["使魔的爱"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    84,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 3000,
+        "next": ["FireRescuePrep"],
+        "on_error": ["FireRescueHome"]
+    },
+    "FireRescuePrep": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    610,
+                    300,
+                    70
+                ],
+                "expected": ["选择助战好友"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 8000,
+        "next": [
+            "FireRescueQuick",
+            "FireRescueNoChance"
+        ]
+    },
+    "FireRescueQuick": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    600,
+                    300,
+                    100
+                ],
+                "expected": ["快捷战斗"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000,
+        "next": ["FireRescueConfirm"]
+    },
+    "FireRescueConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    235,
+                    220,
+                    70
+                ],
+                "expected": ["快捷战斗"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    558,
+                    471
+                ]
+            }
+        },
+        "timeout": 4000,
+        "next": ["FireRescueResult"],
+        "on_error": ["FireRescueHome"]
+    },
+    "FireRescueResult": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    100,
+                    400,
+                    60
+                ],
+                "expected": ["战斗结算"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 20000,
+        "next": ["FireRescueResultOk"],
+        "on_error": ["FireRescueHome"]
+    },
+    "FireRescueResultOk": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    560,
+                    400,
+                    120
+                ],
+                "expected": ["确定"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["FireRescueBack"]
+    },
+    "FireRescueBack": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    610,
+                    300,
+                    70
+                ],
+                "expected": ["选择助战好友"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 8000,
+        "next": ["FireRescueHome"]
+    },
+    "FireRescueNoChance": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    560,
+                    460,
+                    80
+                ],
+                "expected": [
+                    "剩余次数 0/1",
+                    "剩余次数0/1"
+                ]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["FireRescueHome"]
+    },
+    "FireRescueDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    880,
+                    140,
+                    190,
+                    55
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["FireRescueHome"]
+    },
+    "FireRescueHome": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    50
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": []
+    }
+}
