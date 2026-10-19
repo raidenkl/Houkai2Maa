@@ -1,0 +1,16 @@
+{
+    // 社团领体力（日常）：社交 → 我的社团 → 领活跃度奖励。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "ClubStamina",
+            "label": "社团领体力",
+            "entry": "ClubStaminaEntry",
+            "default_check": true,
+            "description": "打开社交页签的「我的社团」，点活跃度奖励的「可领」领取体力。当天已领过时按钮显示「不可领」，任务会识别到并直接收尾，不会空点。",
+            "group": [
+                "daily"
+            ]
+        }
+    ]
+}

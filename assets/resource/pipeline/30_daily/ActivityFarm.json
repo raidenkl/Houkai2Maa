@@ -1,0 +1,795 @@
+{
+    // 活动清体力（日常）：进当期活动刷 BONUS 关，循环「再次挑战」直到体力耗尽。
+    // 流程（实测 2026-10-19，1280x720，emulator-5554 官服，海妖秘境）：
+    //   战斗页签·活动 → 点当期活动名 → 关卡页 → 点 BONUS 下方关卡 → 备战页
+    //   → 勾「使用双倍券」→「选择助战好友」→「备用装备」→「开战」
+    //   → 战斗中【点左侧角色头像切到备用装备套装 = 自动战斗】
+    //   → 战斗结算 → 勾「使用双倍券」→「再次挑战」→ 助战页 …… 循环
+    //   → 体力耗尽时弹「兑换双倍体力」/「补充体力(花费60水晶)」→ 取消 → 收尾回主界面。
+    // 关键事实：
+    //   1) 备用装备套装有自动战斗装备：切过去后不用任何操作，约 10~20s 自动清场到结算页；
+    //      不切的话角色站着不动，约 70s 会被打死（见 ActivityFarmDead）。
+    //   2) 备战页与结算页的双倍券勾选框**每次进入都是未勾选**（实测两次/三次），
+    //      但结算页曾有已勾选的历史状态，故两个页面都用「已勾/未勾」模板判别后再点，不盲点。
+    //   3) 勾了双倍券后「消耗体力」会翻倍（50 → 100），这是它唯一的文字副作用。
+    //   4) 「再次挑战」回到的是**助战好友列表**，不是直接开战，所以循环里要重走
+    //      备用装备 → 开战 → 点头像。
+    //   5) 体力不足时备战页右下按钮从「选择助战好友」变成「补充体力」，点它**不会直接扣水晶**，
+    //      而是先弹窗（实测 2026-10-19）：有双倍体力 →「兑换双倍体力」（换 1 张补 2 体力）；
+    //      没有 →「补充体力（花 60 水晶）」。所以兑换上限设 1 次：2 点体力远不够 50 消耗，
+    //      换完仍然会弹水晶窗，再多换只是把券一张张烧掉。水晶窗一律「取消」，绝不点「确定」。
+    //   6) 死亡弹窗「救救我」的「确定」是花 60 水晶复活，必须走「返回」→「退出关卡」。
+    "ActivityFarmEntry": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "ActivityFarmCrystalPopup",
+            "ActivityFarmExchangePopup",
+            "ActivityFarmExchangeCancel",
+            "ActivityFarmDead",
+            "ActivityFarmNeedStamina",
+            "ActivityFarmResult",
+            "ActivityFarmReady",
+            "ActivityFarmAssist",
+            "ActivityFarmStart",
+            "ActivityFarmStage",
+            "ActivityFarmList",
+            "ActivityFarmActivityTab",
+            "ActivityFarmBattleTab",
+            "[JumpBack]CommonRewardPopup"
+        ],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmHome": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    52
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 8000,
+        "next": []
+    },
+    "ActivityFarmBattleTab": {
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    735,
+                    50,
+                    100,
+                    62
+                ],
+                "expected": ["^战斗$"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        // 点完页签要等页面切过去；否则 Entry 会在同一帧再次命中导航栏的「战斗」
+        "post_delay": 700,
+        "timeout": 3000,
+        "next": ["ActivityFarmEntry"]
+    },
+    "ActivityFarmActivityTab": {
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    60,
+                    240,
+                    90,
+                    60
+                ],
+                "expected": ["^活动$"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmList"]
+    },
+    "ActivityFarmList": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    150,
+                    700,
+                    340
+                ],
+                "expected": ["难度指数"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 6000,
+        "rate_limit": 500,
+        "next": [
+            "ActivityFarmPick",
+            "ActivityFarmListScroll"
+        ]
+    },
+    "ActivityFarmListScroll": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    150,
+                    700,
+                    340
+                ],
+                "expected": ["难度指数"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    560
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmList"]
+    },
+    "ActivityFarmPick": {
+        // expected 由 option「ActivityName」通过 pipeline_override 注入 {活动名}
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    120,
+                    130,
+                    1000,
+                    450
+                ],
+                "expected": ["请填写活动名"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmStage"],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmStage": {
+        // 关卡页：右下「战况」是这页独有的固定文案
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    620,
+                    150,
+                    70
+                ],
+                "expected": ["战况"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 12000,
+        "rate_limit": 500,
+        "next": ["ActivityFarmBannerMatch"]
+    },
+    "ActivityFarmBannerMatch": {
+        // 关卡页右上角横幅就是当前活动名，用它校验「是不是要刷的那个活动」。
+        // 点「战斗」页签会回到**上次停留的关卡页**而不是活动列表，所以必须校验。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1040,
+                    115,
+                    230,
+                    80
+                ],
+                "expected": ["请填写活动名"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 4000,
+        "next": [
+            "ActivityFarmLastPage",
+            "ActivityFarmNextPage"
+        ],
+        "on_error": ["ActivityFarmBannerBack"]
+    },
+    "ActivityFarmBannerBack": {
+        // 横幅上的活动不是要刷的那个：点横幅回活动列表，重新挑
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    620,
+                    150,
+                    70
+                ],
+                "expected": ["战况"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1168,
+                    155
+                ]
+            }
+        },
+        "timeout": 4000,
+        "next": ["ActivityFarmList"],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmLastPage": {
+        // 「N/N」= 已是最后一页；BONUS 关在活动关卡列表的最后一页
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    590,
+                    630,
+                    110,
+                    60
+                ],
+                "expected": ["^([0-9]+)/\\1$"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmFindBonus"]
+    },
+    "ActivityFarmFindBonus": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    140,
+                    210,
+                    300,
+                    90
+                ],
+                "expected": ["BONUS"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                // BONUS 标签下的关卡卡片（标签本身不可点）
+                "target_offset": [
+                    0,
+                    70,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmReady"],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmNextPage": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    590,
+                    630,
+                    110,
+                    60
+                ],
+                "expected": ["^[0-9]+/[0-9]+$"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    741,
+                    664
+                ]
+            }
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmStage"]
+    },
+    "ActivityFarmReady": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    830,
+                    515,
+                    120,
+                    50
+                ],
+                "expected": ["使用双倍券"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "rate_limit": 500,
+        "next": [
+            "ActivityFarmCouponOn",
+            "ActivityFarmCouponOff"
+        ],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmCouponOn": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1060,
+                    505,
+                    90,
+                    80
+                ],
+                "template": ["30_daily/ActivityFarm/coupon_on.png"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["ActivityFarmReadyGate"]
+    },
+    "ActivityFarmCouponOff": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1060,
+                    505,
+                    90,
+                    80
+                ],
+                "template": ["30_daily/ActivityFarm/coupon_off.png"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000,
+        "next": ["ActivityFarmReadyGate"]
+    },
+    "ActivityFarmAssistOpen": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    610,
+                    190,
+                    70
+                ],
+                "expected": ["选择助战好友"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmAssist"]
+    },
+    "ActivityFarmReadyGate": {
+        // 备战页右下角只有两种可能：「选择助战好友」（体力够）或「补充体力」（体力不够）。
+        // 用 DirectHit 做分流，比 on_error 可靠（实测 on_error 这条兜底没生效）。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "ActivityFarmNeedStamina",
+            "ActivityFarmAssistOpen"
+        ]
+    },
+    "ActivityFarmNeedStamina": {
+        // 体力不够时，备战页右下角按钮会从「选择助战好友」变成「补充体力」。
+        // 点它**不扣水晶**，只会弹确认窗（实测），所以这里放心点开交给下面两个弹窗节点处理。
+        // max_hit 2：一次点出「兑换双倍体力」、再一次点出「补充体力（水晶）」；再多就回主界面。
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    660,
+                    620,
+                    180,
+                    70
+                ],
+                "expected": ["补充体力"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2500,
+        // 点完先去等弹窗：回 Entry 会再次命中本节点（max_hit 2）连着点两次。
+        "next": [
+            "ActivityFarmExchangePopup",
+            "ActivityFarmCrystalPopup",
+            "ActivityFarmEntry"
+        ],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmAssist": {
+        "max_hit": 15,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    340,
+                    190,
+                    180,
+                    80
+                ],
+                "expected": ["备用装备"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 6000,
+        "next": ["ActivityFarmStart"],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmStart": {
+        "max_hit": 15,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    770,
+                    620,
+                    130,
+                    70
+                ],
+                "expected": ["开战"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 8000,
+        "next": ["ActivityFarmSwitchEquip"],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmSwitchEquip": {
+        // 等战斗 HUD 出来（暂停按钮是战斗内独有元素），再点左侧头像切到备用装备套装
+        "max_hit": 15,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1150,
+                    0,
+                    130,
+                    72
+                ],
+                "template": ["30_daily/ActivityFarm/pause.png"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    88,
+                    154
+                ]
+            }
+        },
+        "timeout": 30000,
+        "next": ["ActivityFarmBattleWait"],
+        // 点「开战」时体力已经不够的话，战斗 HUD 永远不会出现，这里接住两个体力弹窗
+        "on_error": [
+            "ActivityFarmExchangePopup",
+            "ActivityFarmCrystalPopup",
+            "ActivityFarmHome"
+        ]
+    },
+    "ActivityFarmBattleWait": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 500,
+        "next": [
+            "ActivityFarmResult",
+            "ActivityFarmDead"
+        ]
+    },
+    "ActivityFarmResult": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    100,
+                    400,
+                    60
+                ],
+                "expected": ["战斗结算"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 45000,
+        "next": [
+            "ActivityFarmAgainOn",
+            "ActivityFarmAgainOff"
+        ]
+    },
+    "ActivityFarmAgainOn": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    655,
+                    510,
+                    95,
+                    75
+                ],
+                "template": ["30_daily/ActivityFarm/again_on.png"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["ActivityFarmAgain"]
+    },
+    "ActivityFarmAgainOff": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    655,
+                    510,
+                    95,
+                    75
+                ],
+                "template": ["30_daily/ActivityFarm/again_off.png"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000,
+        "next": ["ActivityFarmAgain"]
+    },
+    "ActivityFarmAgain": {
+        "max_hit": 15,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    580,
+                    160,
+                    70
+                ],
+                "expected": ["再次挑战"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmEntry"],
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmExchangePopup": {
+        // 体力耗尽第一弹：兑换双倍体力。点「兑换」(532,458)，用掉 1 张双倍体力补 2 体力，
+        // 然后回循环重新判断（体力仍不够时下一步会弹水晶窗，由 CrystalPopup 取消收尾）。
+        // max_hit 1 是硬约束：兑换只补 2 点，对 50 消耗的 BONUS 关没有决定性作用，
+        // 不限次的话券会被一张张换成 2 点体力，纯亏。
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    220,
+                    220,
+                    60
+                ],
+                "expected": ["[兑兌]换双倍体力"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    532,
+                    458
+                ]
+            }
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmEntry"]
+    },
+    "ActivityFarmExchangeCancel": {
+        // 兑换额度用完后仍然弹兑换窗（双倍体力很多时）：改点「取消」，不再消耗，直接收尾。
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    220,
+                    220,
+                    60
+                ],
+                "expected": ["[兑兌]换双倍体力"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    745,
+                    458
+                ]
+            }
+        },
+        "timeout": 3000,
+        // 结算页取消后要按「确定」收掉；备战页取消后没有确定，直接回主界面。
+        "next": [
+            "ActivityFarmFinish",
+            "ActivityFarmHome"
+        ]
+    },
+    "ActivityFarmCrystalPopup": {
+        "max_hit": 1,
+        // 体力耗尽第二弹：花水晶补充体力。取消后直接收尾，不再挑战
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    220,
+                    220,
+                    60
+                ],
+                "expected": ["补充体力"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    745,
+                    458
+                ]
+            }
+        },
+        "timeout": 3000,
+        "next": [
+            "ActivityFarmFinish",
+            "ActivityFarmHome"
+        ]
+    },
+    "ActivityFarmFinish": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    790,
+                    580,
+                    120,
+                    70
+                ],
+                "expected": ["确定"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 5000,
+        "next": ["ActivityFarmHome"]
+    },
+    "ActivityFarmDead": {
+        "max_hit": 1,
+        // 站桩被打死：只能走「返回」→「退出关卡」，绝不点花 60 水晶复活的「确定」
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    20,
+                    220,
+                    70
+                ],
+                "expected": ["救救我"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    529,
+                    639
+                ]
+            }
+        },
+        "timeout": 3000,
+        "next": ["ActivityFarmExitConfirm"]
+    },
+    "ActivityFarmExitConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    540,
+                    220,
+                    220,
+                    60
+                ],
+                "expected": ["退出关卡"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    532,
+                    455
+                ]
+            }
+        },
+        "timeout": 5000,
+        "next": ["ActivityFarmHome"]
+    }
+}

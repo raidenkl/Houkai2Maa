@@ -1,0 +1,289 @@
+{
+    // 一键日常：把每日要跑的链路串成一条流程，每一步都能在 MFAAvalonia 里单独勾选/取消。
+    // 节点骨架见 assets/resource/pipeline/30_daily/OneClickDaily.json；
+    // 这里的 pipeline_override 只做两件事：
+    //   1) 把各业务链路的收尾节点（原本 next 为空）接到下一个 Gate —— 这是串联的关键；
+    //   2) 把勾选项对应 Gate 的 next 从「下一个 Gate」改成「本步的业务 Entry」。
+    "task": [
+        {
+            "name": "OneClickDaily",
+            "label": "一键日常",
+            "entry": "OneClickDailyEntry",
+            "default_check": true,
+            "description": "按顺序跑完勾选的日常：启动游戏（含每日签到）→ 使魔探险 → 共鸣之力 → 火线救援 → 世界这么大 → 战力补强 → 社团领体力 → 活动清体力。每步都可以在下方「要执行的日常」里单独关掉；关掉的步骤会被直接跳过，不会中断后续步骤。活动清体力默认关闭，因为它会吃光体力且需要先填活动名。",
+            "group": [
+                "daily"
+            ],
+            "pipeline_override": {
+                // 各链路收尾节点 → 下一个 Gate（串联点）
+                "LaunchGameReady": {
+                    "next": [
+                        "OneClickDailyFamiliarGate"
+                    ]
+                },
+                "FamiliarExploreDone": {
+                    "next": [
+                        "OneClickDailyHomeFromFamiliar"
+                    ]
+                },
+                "ResonanceRefreshHome": {
+                    "next": [
+                        "OneClickDailyFireRescueGate"
+                    ]
+                },
+                "FireRescueHome": {
+                    "next": [
+                        "OneClickDailyWorldTravelGate"
+                    ]
+                },
+                "WorldTravelHome": {
+                    "next": [
+                        "OneClickDailyPowerBoostGate"
+                    ]
+                },
+                "PowerBoostHome": {
+                    "next": [
+                        "OneClickDailyClubGate"
+                    ]
+                },
+                "ClubStaminaHome": {
+                    "next": [
+                        "OneClickDailyActivityGate"
+                    ]
+                },
+                "ActivityFarmHome": {
+                    "next": [
+                        "OneClickDailyEnd"
+                    ]
+                }
+            },
+            "option": [
+                "OneClickDailySteps"
+            ]
+        }
+    ],
+    "option": {
+        "OneClickDailySteps": {
+            "type": "checkbox",
+            "label": "要执行的日常",
+            "description": "勾上就执行、取消就跳过。跳过某一步不会影晌后面的步骤：每个步骤前都有一个永远命中的分流节点，关掉只是把流程直接接到下一步。\n\n「启动游戏」包含每日签到（签到没有独立入口，挂在登录弹窗链上）。**如果游戏还没启动，请务必保留这一项**，否则后面的步骤会因为不在主界面而失败。",
+            "cases": [
+                {
+                    "name": "启动游戏",
+                    "label": "启动游戏（含每日签到）",
+                    "description": "从桌面/后台启动游戏，领每日签到与连登福利，关掉活动广告和公告，直到主界面左栏图标可点。游戏已在主界面时这步很快。",
+                    "pipeline_override": {
+                        "OneClickDailyLaunchGate": {
+                            "post_delay": 800,
+                            "next": [
+                                "LaunchGameEntry"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "使魔探险",
+                    "label": "使魔探险",
+                    "description": "领取已完成的使魔探险奖励，并把有空位的队伍重新派出。",
+                    "pipeline_override": {
+                        "OneClickDailyFamiliarGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["FamiliarExploreEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "共鸣之力",
+                    "label": "共鸣之力",
+                    "description": "共鸣屋免费刷新并使用免费次数。",
+                    "pipeline_override": {
+                        "OneClickDailyResonanceGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["ResonanceRefreshEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "火线救援",
+                    "label": "火线救援",
+                    "description": "多元裂缝「使魔的爱」快捷战斗。",
+                    "pipeline_override": {
+                        "OneClickDailyFireRescueGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["FireRescueEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "世界这么大",
+                    "label": "世界这么大",
+                    "description": "存在感列表里的「世界这么大」：进虚轴之庭快捷战斗，把今日免费次数刷完。",
+                    "pipeline_override": {
+                        "OneClickDailyWorldTravelGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["WorldTravelEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "战力补强",
+                    "label": "战力补强",
+                    "description": "存在感列表里的「战力补强」：进礼包商店买免费（×0）的零时馈礼。价格不为 0 时不会购买。",
+                    "pipeline_override": {
+                        "OneClickDailyPowerBoostGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["PowerBoostEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "社团领体力",
+                    "label": "社团领体力",
+                    "description": "社交 → 我的社团 → 点活跃度奖励的「可领」领体力。当天已领过（按钮显示「不可领」）会自动跳过。",
+                    "pipeline_override": {
+                        "OneClickDailyClubGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["ClubStaminaEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "活动清体力",
+                    "label": "活动清体力（吃光体力，默认关闭）",
+                    "description": "把体力刷在当期活动的 BONUS 关，直到体力不足。需要先填「当期活动」的名字。开启后会自动勾双倍券、选备用装备、开战并切备用装备套装自动战斗，循环到体力耗尽；体力不足时只兑换 1 次双倍体力，绝不用水晶买体力。",
+                    "option": [
+                        "ActivityName",
+                        "ActivityFarmDouble"
+                    ],
+                    "pipeline_override": {
+                        "OneClickDailyActivityGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 1500,
+                            "timeout": 8000,
+                            "next": ["ActivityFarmEntry"]
+                        }
+                    }
+                }
+            ],
+            "default_case": [
+                "启动游戏",
+                "使魔探险",
+                "共鸣之力",
+                "火线救援",
+                "世界这么大",
+                "战力补强",
+                "社团领体力"
+            ]
+        }
+    }
+}

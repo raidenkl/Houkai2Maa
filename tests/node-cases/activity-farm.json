@@ -1,0 +1,136 @@
+{
+    "configs": {
+        "name": "activity-farm",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "farm-assist.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmAssist"
+            ]
+        },
+        {
+            "image": "farm-battle.png",
+            "hits": [
+                "ActivityFarmSwitchEquip"
+            ]
+        },
+        {
+            "image": "farm-crystal.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmResult",
+                "ActivityFarmAgainOn",
+                "ActivityFarmAgain",
+                "ActivityFarmCrystalPopup",
+                "ActivityFarmFinish"
+            ]
+        },
+        {
+            "image": "farm-dead.png",
+            "hits": [
+                "ActivityFarmDead"
+            ]
+        },
+        {
+            "image": "farm-exchange.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmResult",
+                "ActivityFarmAgainOn",
+                "ActivityFarmAgain",
+                "ActivityFarmExchangePopup",
+                "ActivityFarmFinish"
+            ]
+        },
+        {
+            "image": "farm-exit.png",
+            "hits": [
+                "ActivityFarmExitConfirm"
+            ]
+        },
+        {
+            "image": "farm-list.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmActivityTab",
+                "ActivityFarmList"
+            ]
+        },
+        {
+            "image": "farm-nostam.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmReady",
+                "ActivityFarmCouponOn",
+                "ActivityFarmNeedStamina"
+            ]
+        },
+        {
+            "image": "farm-ready-on.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmReady",
+                "ActivityFarmCouponOn",
+                "ActivityFarmAssistOpen"
+            ]
+        },
+        {
+            "image": "farm-ready.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmReady",
+                "ActivityFarmCouponOff",
+                "ActivityFarmAssistOpen"
+            ]
+        },
+        {
+            "image": "farm-result-on.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmResult",
+                "ActivityFarmAgainOn",
+                "ActivityFarmAgain",
+                "ActivityFarmFinish"
+            ]
+        },
+        {
+            "image": "farm-result.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmResult",
+                "ActivityFarmAgainOff",
+                "ActivityFarmAgain",
+                "ActivityFarmFinish"
+            ]
+        },
+        {
+            "image": "farm-stage.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmLastPage",
+                "ActivityFarmFindBonus"
+            ]
+        },
+        {
+            "image": "farm-start.png",
+            "hits": [
+                "ActivityFarmBattleTab",
+                "ActivityFarmStage",
+                "ActivityFarmStart"
+            ]
+        }
+    ]
+}

@@ -12,5 +12,12 @@
     //     timeout=120000 + rate_limit=2000 的识别驱动等待
     "E203": {
         "assets/resource/pipeline/90_activity/FactionWar.json": ["FactionWarEntry"]
+    },
+    // W200（节点不可达）：静态分析只看 pipeline 文件内部的 next/on_error，
+    // 看不到 task 的 pipeline_override。OneClickDailyHomeFromFamiliar 的引用在
+    // assets/tasks/oneclick/OneClickDaily.json 的 FamiliarExploreDone.next 里，
+    // 运行时才注入。改那个 task 时如果删掉这条 override，就必须同步删除这里的豁免。
+    "W200": {
+        "assets/resource/pipeline/30_daily/OneClickDaily.json": ["OneClickDailyHomeFromFamiliar"]
     }
 }

@@ -1,0 +1,207 @@
+{
+    // 一键日常：把各条日常链路串成一条流程，每一步都能在 MFAAvalonia 里单独关掉。
+    // 由 assets/tasks/oneclick/OneClickDaily.json 引用；改动后跑 npm run lint + check。
+    //
+    // 机制（为什么这么写）：
+    //   1) 每个业务步骤前放一个 *Gate 节点，识别用 DirectHit（永远命中，不截图、不耗时）；
+    //   2) Gate 的默认 next 指向**下一个 Gate**，也就是「跳过本步」；
+    //   3) task 的 checkbox 勾上某一步时，用 pipeline_override 把该 Gate 的 next
+    //      改成对应业务的 Entry，也就是「执行本步」。
+    //   → 跳过是默认值、执行才需要覆盖。用户取消勾选时不需要任何额外节点，
+    //     也不会出现「识别不到就卡住」的情况。
+    //
+    //   4) 串联点是各业务链路的收尾节点（LaunchGameReady / *Done / *Home，原本 next 为空）。
+    //      这些改写统一放在 task.pipeline_override 里，单跑某条业务任务时不会加载，
+    //      所以两条链路互不影响。
+    //
+    // 顺序按「从轻到重」：先零体力消耗的领奖类，最后才是会吃光体力的活动清体力。
+    "OneClickDailyEntry": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyNavHome",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "OneClickDailyNavHome": {
+        // 编排开始前先把界面拉回主界面。
+        // 1) 用户可能从任意子页面（使魔探险、关卡页…）点「一键日常」；
+        // 2) 子页面顶部也有「首页」文案，会让 LaunchGameHub 误判成「已经在主界面」，
+        //    而主界面就绪判据（左栏图标模板）在子页面根本不命中，登录链会卡到 timeout。
+        // 在桌面（游戏未启动）时识别不到「首页」，3 秒超时后交给 on_error 直接进下一步。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    52
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": [
+            "OneClickDailyLaunchGate"
+        ],
+        "on_error": [
+            "OneClickDailyResume"
+        ]
+    },
+    "OneClickDailyResume": {
+        // NavHome 识别不到「首页」时的接续点（游戏还没启动、或停在完全没有导航栏的界面）。
+        // 单独一个节点是为了让 next / on_error 不指向同一个目标（项目 check 会把重复路由判错）。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "OneClickDailyLaunchGate"
+        ]
+    },
+    "OneClickDailyLaunchGate": {
+        // 启动游戏 + 每日签到。签到（DailySignInClaim / DailySignInEvent）挂在 LaunchGameHub 上，
+        // 没有独立入口，所以和启动绑成一步；游戏已在主界面时这步也很快。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyFamiliarGate"
+        ]
+    },
+    "OneClickDailyFamiliarGate": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyResonanceGate"
+        ]
+    },
+    "OneClickDailyHomeFromFamiliar": {
+        // 使魔探险的 FamiliarExploreDone 只做 DoNothing、**不回主界面**（其它链路的 *Done/*Home
+        // 都会点一次「首页」）。实测串联到这里会停在使魔探险页，下一步的 Entry 就识别不到了。
+        // 所以这里补一次「点首页」，下一站固定是共鸣之力。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    52
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 8000,
+        "next": [
+            "OneClickDailyResonanceGate"
+        ]
+    },
+    "OneClickDailyResonanceGate": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyFireRescueGate"
+        ]
+    },
+    "OneClickDailyFireRescueGate": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyWorldTravelGate"
+        ]
+    },
+    "OneClickDailyWorldTravelGate": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyPowerBoostGate"
+        ]
+    },
+    "OneClickDailyPowerBoostGate": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyClubGate"
+        ]
+    },
+    "OneClickDailyClubGate": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyActivityGate"
+        ]
+    },
+    "OneClickDailyActivityGate": {
+        // 活动清体力：默认跳过（吃光体力、且必须先填活动名）。
+        // 这也是「最后一步」，后面的 OneClickDailyEnd 只是收束。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyEnd"
+        ]
+    },
+    "OneClickDailyEnd": {
+        // 全部步骤跑完：DirectHit 直接结束，不做任何点击，把控制权交回客户端。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": []
+    }
+}

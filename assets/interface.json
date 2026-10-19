@@ -71,6 +71,12 @@
     },
     "group": [
         {
+            "name": "oneclick",
+            "label": "一键日常",
+            "description": "把多个日常串成一条流程，可逐步勾选是否执行",
+            "default_expand": true
+        },
+        {
             "name": "launch",
             "label": "启动",
             "description": "启动客户端、进入游戏、清理登录弹窗",
@@ -97,13 +103,16 @@
     ],
     "task": [],
     "import": [
+        "tasks/oneclick/OneClickDaily.json",
         "tasks/launch/LaunchGame.json",
         "tasks/activity/FactionWar.json",
         "tasks/daily/FamiliarExplore.json",
         "tasks/daily/FireRescue.json",
         "tasks/daily/ResonanceRefresh.json",
         "tasks/daily/WorldTravel.json",
-        "tasks/daily/PowerBoost.json"
+        "tasks/daily/PowerBoost.json",
+        "tasks/daily/ClubStamina.json",
+        "tasks/daily/ActivityFarm.json"
     ],
     "preset": [
         {

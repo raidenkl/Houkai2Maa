@@ -1,0 +1,29 @@
+{
+    "configs": {
+        "name": "club-stamina",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            "image": "club-panel.png",
+            "hits": [
+                "ClubStaminaEntry",
+                "ClubStaminaSocialTab",
+                "ClubStaminaPanel",
+                "ClubStaminaDone",
+                "ClubStaminaHome"
+            ]
+        },
+        {
+            "image": "club-social.png",
+            "hits": [
+                "ClubStaminaEntry",
+                "ClubStaminaSocialTab",
+                "ClubStaminaClubBtn",
+                "ClubStaminaHome"
+            ]
+        }
+    ]
+}

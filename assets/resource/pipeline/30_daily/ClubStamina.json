@@ -1,0 +1,151 @@
+{
+    // 社团领体力（日常）：社交 → 我的社团 → 点「可领」领活跃度奖励 → 回主界面。
+    // 流程（实测 2026-10-19，1280x720，emulator-5554 官服）：
+    //   顶部导航「社交」→ 四宫格「我的社团」→ 社团面板右下的活跃度领取按钮。
+    // 关键事实：
+    //   1) 该按钮只有两种文案「可领」/「不可领」，且「不可领」包含「可领」子串。
+    //      MaaFramework 的 OCR expected 是正则搜索，所以「可领」必须写成
+    //      ^\s*(?!不)可领\s*$ （两侧容忍空格），否则已领过的状态会被误判成可领、反复空点。
+    //   2) 活跃度是面板上的固定文案，用它判断「社团面板已就绪」。
+    //   3) 领完的奖励弹窗复用 10_common 的 CommonRewardPopup（识别「获得奖励」）。
+    "ClubStaminaEntry": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "ClubStaminaPanel",
+            "ClubStaminaClubBtn",
+            "ClubStaminaSocialTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "ClubStaminaSocialTab": {
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1050,
+                    50,
+                    130,
+                    62
+                ],
+                "expected": ["^社交$"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ClubStaminaClubBtn"]
+    },
+    "ClubStaminaClubBtn": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    600,
+                    190,
+                    200,
+                    80
+                ],
+                "expected": ["我的社团"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 6000,
+        "next": ["ClubStaminaPanel"],
+        "on_error": ["ClubStaminaHome"]
+    },
+    "ClubStaminaPanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    780,
+                    470,
+                    190,
+                    60
+                ],
+                "expected": ["活跃度"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 8000,
+        "rate_limit": 500,
+        "next": [
+            "ClubStaminaClaim",
+            "ClubStaminaDone",
+            "[JumpBack]CommonRewardPopup"
+        ],
+        // 面板认不出来（没进到社团页）时直接收尾，不要卡在这里
+        "on_error": ["ClubStaminaHome"]
+    },
+    "ClubStaminaClaim": {
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    920,
+                    420,
+                    140,
+                    72
+                ],
+                "expected": ["^\\s*(?!不)可领\\s*$"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000,
+        "next": ["ClubStaminaPanel"],
+        "on_error": ["ClubStaminaHome"]
+    },
+    "ClubStaminaDone": {
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    920,
+                    420,
+                    140,
+                    72
+                ],
+                "expected": ["不可领"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 2000,
+        "next": ["ClubStaminaHome"]
+    },
+    "ClubStaminaHome": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    52
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 8000,
+        "next": []
+    }
+}

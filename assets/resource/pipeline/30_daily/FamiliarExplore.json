@@ -14,7 +14,14 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                // 图标只有 30x40，默认的随机点会落到边缘点不中（实测 41,160）；固定点中心
+                "target": [
+                    51,
+                    174
+                ]
+            }
         },
         "next": [
             "FamiliarExploreTab",

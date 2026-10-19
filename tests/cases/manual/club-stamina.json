@@ -1,0 +1,21 @@
+{
+    // 社团领体力（真机录制，2026-10-19，emulator-5554 官服 1280x720）。
+    // 录制时当天活跃度奖励已领过，按钮是「不可领」，因此走的是「识别到已领 → 直接收尾」
+    // 分支；「可领 → 点击 → 奖励弹窗」分支在录当天不可复现，由
+    // tests/node-cases/club-stamina.json 覆盖识别部分（可领正则已用 probe 验证排除「不可领」）。
+    "case": "club-stamina",
+    "entry": "ClubStaminaEntry",
+    "recording": "tests/recordings/club-stamina/club-stamina.jsonl",
+    "expect": {
+        "completed": true,
+        "hit_nodes": [
+            "ClubStaminaEntry",
+            "ClubStaminaSocialTab",
+            "ClubStaminaClubBtn",
+            "ClubStaminaPanel",
+            "ClubStaminaDone",
+            "ClubStaminaHome"
+        ],
+        "max_steps": 30
+    }
+}
