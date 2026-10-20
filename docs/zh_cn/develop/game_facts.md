@@ -561,6 +561,26 @@ python tools/dev/snapshot.py --image shots/home.png --grid
     淡出期间 `战斗结算` 仍可 OCR，立刻回 `Entry` 会在残留画面上再命中一次 `Result`，
     形成假循环。另外一个更稳的做法是让 `Again` 直接接 `Assist`（再次挑战回的是助战列表，
     备用装备已选中），`Entry` 只作兜底。
+12. **本链路在一键日常里会被跑两轮**（第一轮吃光现有体力 → 领「勤劳的魔女」的 100 体力
+    → 第二轮再刷）。`max_hit` 是**整次任务**的累计命中数，所以凡是「每轮要用一次」的
+    节点都得按两轮留额度，否则第二轮一进门就被整段跳过，表现为 bad next 或卡在关卡页。
+    2026-10-20 按两轮调整过的额度：
+
+    | 节点                             | 旧 → 新   | 每轮用量                              |
+    | -------------------------------- | --------- | ------------------------------------- |
+    | `ActivityFarmFindBonus`          | 1 → 3     | 1（第二轮会重进关卡页，必须能再定位） |
+    | `ActivityFarmBattleTab`          | 2 → 4     | 1（点「战斗」页签）                   |
+    | `ActivityFarmActivityTab`        | 2 → 4     | 1                                     |
+    | `ActivityFarmPick`               | 3 → 5     | 1（从活动列表进关卡页）               |
+    | `ActivityFarmListScroll`         | 3 → 5     | 0~2                                   |
+    | `ActivityFarmNextPage`           | 3 → 5     | 1~2（翻到 BONUS 所在末页）            |
+    | `ActivityFarmBannerBack`         | 2 → 4     | 0~1                                   |
+    | `ActivityFarmNeedStamina`        | 2 → 4     | 1~2（点出兑换窗 / 水晶窗）            |
+    | `ActivityFarmCrystalPopup`       | 1 → 2     | 1（每轮各取消一次水晶窗）             |
+    | `ActivityFarmExchangeCancel`     | 2 → 4     | 0~1                                   |
+    | `Assist/Start/SwitchEquip/Again` | 15 → 30   | 每场 1 次，两轮总场数约 6             |
+    | `ActivityFarmDead`               | 1 → 2     | 0~1                                   |
+    | `ActivityFarmExchangePopup`      | 1（保留） | 全局只兑换 1 次双倍体力               |
 
 ### 16.3 已知限制
 
@@ -591,11 +611,19 @@ python tools/dev/snapshot.py --image shots/home.png --grid
 
 ### 17.1 结构
 
-- 8 个 `OneClickDaily*Gate` 分流闸，默认 `DirectHit`，`next` 指向下一个 Gate（= 跳过）；
-- 8 个 `checkbox` case，勾选时用 `pipeline_override` 把对应 Gate 接到业务 `Entry`；
+- 10 个 `OneClickDaily*Gate` 分流闸，默认 `DirectHit`，`next` 指向下一个 Gate（= 跳过）；
+- 10 个 `checkbox` case，勾选时用 `pipeline_override` 把对应 Gate 接到业务 `Entry`；
 - 各链路原本 `next` 为空的收尾节点在 **task 级 `pipeline_override`** 里接到下一个 Gate；
 - 顺序：启动（含签到）→ 使魔探险 → 共鸣之力 → 火线救援 → 世界这么大 → 战力补强
-  → 社团领体力 → 活动清体力。活动清体力默认不勾（吃光体力且要填活动名）。
+  → 社团领体力 → 活动清体力 → 勤劳的魔女（+100 体力）→ 第二轮活动清体力 → 存在感一键领取。
+  活动清体力默认不勾（吃光体力且要填活动名）。
+
+**「两轮刷本」的轮次分流**（`OneClickDailyFarmAgainGate`，见 §19.3）：
+勾了活动清体力时，`MagicWitchDone.next` 被 override 成
+`[FarmAgainGate, ClaimAllGate]`，于是「领完魔女的 100 体力」直接接第二轮；
+第二轮刷完回到 `ActivityFarmHome` 时，`OneClickDailyMagicWitchGate` 的 `max_hit: 1`
+已用尽，候选落到 `ClaimAllGate` 做收尾。没勾活动清体力时这段 override 不加载，
+`MagicWitchDone` 直接用 task 级默认值去一键领取 —— 不会被动刷本。
 
 ### 17.2 串联时必须处理的三个真实行为
 
@@ -640,6 +668,23 @@ python tools/dev/snapshot.py --image shots/home.png --grid
 | 社团「可领」连领 2 次            | 全绿，`ClubStaminaClaim` ×2 → 面板第三轮超时收尾              |
 
 本轮修掉的 5 个问题见 §18。
+
+**2026-10-20 两轮刷本验证（体力 179/205，魔女当天已领，勾活动清体力 + 海妖）**：
+169 行日志全 ✓，约 2 分钟，体力 179 → 79。关键节点顺序：
+
+```
+ActivityFarmHome(第一轮) → MagicWitchGate → MagicWitchScroll×2 → MagicWitchDone
+  → FarmAgainGate → ActivityFarmEntry(第二轮) → BattleTab → Stage
+  → BannerMatch → LastPage → FindBonus ← 第 2 次命中（max_hit 1 时这里就卡死了）
+  → Ready → CouponOff → ReadyGate → NeedStamina(79 不够 100) → CrystalPopup(取消)
+  → Finish → ActivityFarmHome(第二轮)
+  → ClaimAllGate ← MagicWitchGate 已用尽，候选正确落到这里
+  → ClaimAllButton → ClaimAllEmpty → ClaimAllHome → End
+```
+
+验证到的是：轮次分流（`max_hit: 1` 用尽后落到下一候选）成立；`FindBonus` 第二轮
+仍能定位 BONUS 关；第二轮体力不足时安全退出、不扣水晶。
+**未验证**：第二轮真正打满（今天体力不够第二场），需明日任务刷新后跑一次正向路径。
 
 ## 18. 框架语义备忘（2026-10-20 实测踩出来的）
 
@@ -728,10 +773,33 @@ timeout（20s）才报 `bad next`，表现为「点了任务后干等 20 秒什�
 - 「勤劳的魔女」用说明文字定位 + `target_offset (540,18)` 点「领取」；说明框宽 182px，
   落点会左右抖 ±91px，而按钮只有 100px 宽，单次命中率约 55%，靠 `max_hit: 3` 重试。
 - 「一键领取」按钮位置固定（不随列表滚动），写死 `target (1020,212)`。
-- 一键日常里这三步的串联：`ActivityFarmHome → MagicWitchGate → ClaimAllGate → End`。
+- 一键日常里这四步的串联（两轮）：
+
+    ```
+    ActivityFarmHome ─(第一轮)─→ MagicWitchGate ─→ MagicWitchEntry …Done
+          ↑                                              │
+          │                                    [勾了活动清体力] FarmAgainGate
+          │                                              ↓
+          └────────(第二轮)──────────── ActivityFarmEntry
+          │
+          └─(第二轮结束，MagicWitchGate max_hit 已用尽)─→ ClaimAllGate → End
+    ```
+
+    两个闸门都是 `max_hit: 1`，靠「用尽后候选自动落到下一个」做轮次分流
+    （这个行为已在 `MagicWitchPanel → [Find(3), Scroll(2), Done]` 上真机验证过）。
+    没有这两个限制就是死循环：第二轮结束又回魔女页 → 再领 → 再刷。
+
+- 顺序不能反过来（先领再刷）：100 体力是点「领取」**立即到账**的，不等一键领取，
+  所以第二轮紧跟在 `MagicWitchDone` 后面；一键领取放最后，顺带收掉第二轮刷出来的
+  日常奖励（消耗体力类任务）。
 
 ### 19.4 已知限制
 
-- 领完「勤劳的魔女」的 100 体力后，若还想用它再刷一轮，需要在活动清体力里把
-  「使用双倍券」关掉（双倍券一场要 100 体力），否则这 100 点只够打一场普通本。
+- **第二轮的空转开销**：体力已经领过（魔女行消失）或活动清体力开在没体力的时段时，
+  第二轮仍会进一次活动页，靠 `NeedStamina → CrystalPopup(取消) → Finish` 快速退出，
+  实测多花约 15~25s。不会扣水晶，也不会多刷。
+- **双倍券模式下那 100 体力只够打 1 场**（BONUS 关 50 → 勾券 100）。想让第二轮把
+  100 体力吃满，就把活动清体力里的「使用双倍券」关掉（每场 50，能打 2 场）。
+- 勾了「活动清体力」但关掉「勤劳的魔女」时，第一轮刷完会跳过魔女直接去一键领取，
+  第二轮不会发生（拿不到那 100 体力，刷也没意义）。
 - 任务进度重置时间未采集（推断为每日 4:00，与其它日常一致，记为 `TODO(game_facts)`）。

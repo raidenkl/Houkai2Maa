@@ -10,7 +10,7 @@
             "label": "一键日常",
             "entry": "OneClickDailyEntry",
             "default_check": true,
-            "description": "按顺序跑完勾选的日常：启动游戏（含每日签到）→ 使魔探险 → 共鸣之力 → 火线救援 → 世界这么大 → 战力补强 → 社团领体力 → 活动清体力 → 勤劳的魔女（+100 体力）→ 存在感一键领取。每步都可以在下方「要执行的日常」里单独关掉；关掉的步骤会被直接跳过，不会中断后续步骤。活动清体力默认关闭，因为它会吃光体力且需要先填活动名。",
+            "description": "按顺序跑完勾选的日常：启动游戏（含每日签到）→ 使魔探险 → 共鸣之力 → 火线救援 → 世界这么大 → 战力补强 → 社团领体力 → 活动清体力 → 勤劳的魔女（+100 体力）→ 第二轮活动清体力（把刚领的 100 体力也刷掉）→ 存在感一键领取。每步都可以在下方「要执行的日常」里单独关掉；关掉的步骤会被直接跳过，不会中断后续步骤。活动清体力默认关闭，因为它会吃光体力且需要先填活动名；只有开了它才会跑第二轮。",
             "group": [
                 "daily"
             ],
@@ -52,8 +52,14 @@
                     ]
                 },
                 "ActivityFarmHome": {
+                    // 刷完一轮的收尾。谁接在后面，就是"两轮"的轮次分流点：
+                    //   第一轮 → OneClickDailyMagicWitchGate（领魔女的 100 体力，闸门 max_hit 1）
+                    //   第二轮 → 闸门已用尽 → OneClickDailyClaimAllGate（一键领取收尾）
+                    // 两个候选的先后不能换：ClaimAllGate 也是永远命中的 DirectHit+OCR 链，
+                    // 放到前面会让第一轮刷完就跳过魔女直接去领取。
                     "next": [
-                        "OneClickDailyMagicWitchGate"
+                        "OneClickDailyMagicWitchGate",
+                        "OneClickDailyClaimAllGate"
                     ]
                 },
                 "MagicWitchDone": {
@@ -274,7 +280,7 @@
                 {
                     "name": "活动清体力",
                     "label": "活动清体力（吃光体力，默认关闭）",
-                    "description": "把体力刷在当期活动的 BONUS 关，直到体力不足。需要先填「当期活动」的名字。开启后会自动勾双倍券、选备用装备、开战并切备用装备套装自动战斗，循环到体力耗尽；体力不足时只兑换 1 次双倍体力，绝不用水晶买体力。",
+                    "description": "把体力刷在当期活动的 BONUS 关，直到体力不足。需要先填「当期活动」的名字。开启后会自动勾双倍券、选备用装备、开战并切备用装备套装自动战斗，循环到体力耗尽；体力不足时只兑换 1 次双倍体力，绝不用水晶买体力。\n\n开启后会自动跑**两轮**：第一轮吃光现有体力 → 领「勤劳的魔女」的 100 体力 → 第二轮把这 100 体力也刷掉 → 一键领取收尾。所以「勤劳的魔女」这一步不要关掉，否则第二轮不会发生。",
                     "option": [
                         "ActivityName",
                         "ActivityFarmDouble"
@@ -302,6 +308,36 @@
                             "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["ActivityFarmEntry"]
+                        },
+                        // 第二轮刷本的挂载点：魔女那 100 体力是**点「领取」直接到账**的
+                        // （不等一键领取），所以领完立刻接第二轮，把新体力刷掉；
+                        // 一键领取仍然留到最后，顺带把第二轮刷出来的日常奖励一起领了。
+                        // 没勾本 step 时这段 override 不生效，MagicWitchDone 用 task 级
+                        // 默认值直接去一键领取 —— 不会被动刷本。
+                        "MagicWitchDone": {
+                            "next": [
+                                "OneClickDailyFarmAgainGate",
+                                "OneClickDailyClaimAllGate"
+                            ]
+                        },
+                        "OneClickDailyFarmAgainGate": {
+                            // 和第二轮的 ActivityFarmEntry 之间同样补一刀「首页」+ 等转场
+                            // （魔女链路收尾不回主界面，停在存在感页）。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 3000,
+                            "timeout": 8000
                         }
                     }
                 },

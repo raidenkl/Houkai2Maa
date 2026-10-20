@@ -199,6 +199,13 @@
     "OneClickDailyMagicWitchGate": {
         // 勤劳的魔女：排在活动清体力**之后**。
         // 这个任务（累计消耗 180 体力）要靠前面刷本才会完成，放在前面必然领不到。
+        //
+        // max_hit 1 是**轮次闸门**：ActivityFarmHome 的 next 是
+        // [本节点, OneClickDailyClaimAllGate]。第一轮刷完命中本节点去领 100 体力；
+        // 领完立刻接第二轮（见 OneClickDailyFarmAgainGate），第二轮刷完再回到
+        // ActivityFarmHome 时本节点已用尽，候选自动落到 ClaimAllGate 做收尾。
+        // 不加 max_hit 的话第二轮结束又会去魔女页 → 再领 → 再刷一轮 → 死循环。
+        "max_hit": 1,
         "recognition": {
             "type": "DirectHit"
         },
@@ -211,7 +218,7 @@
         ]
     },
     "OneClickDailyClaimAllGate": {
-        // 存在感一键领取：全流程最后一步，把当天已完成的所有日常奖励一次领完。
+        // 存在感一键领取：把当天已完成的所有日常奖励一次领完（含魔女那 100 体力）。
         "recognition": {
             "type": "DirectHit"
         },
@@ -221,6 +228,28 @@
         "rate_limit": 300,
         "next": [
             "OneClickDailyEnd"
+        ]
+    },
+    "OneClickDailyFarmAgainGate": {
+        // 第二轮刷本：领完「勤劳的魔女」的 100 体力之后，立刻拿它再刷一轮。
+        //
+        // 挂载点：MagicWitchDone.next（见 task 里「活动清体力」case 的 override）。
+        // 选魔女收尾而不是「一键领取」收尾，是因为那 100 体力是点「领取」时**立即到账**的，
+        // 不必等一键领取；把第二轮插在这里，一键领取还能顺带收掉第二轮刷出来的日常奖励。
+        // 只有勾了「活动清体力」才会挂上——没勾刷本的用户不该被动吃一场本。
+        //
+        // max_hit 1 是保险：正常两轮只走一次；万一链路又绕回魔女收尾，本节点用尽后
+        // 候选落到同一 next 列表里的 ClaimAllGate，直接收尾，不会无限刷。
+        "max_hit": 1,
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "ActivityFarmEntry"
         ]
     },
     "OneClickDailyEnd": {
