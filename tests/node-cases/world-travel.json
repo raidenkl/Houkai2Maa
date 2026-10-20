@@ -12,7 +12,8 @@
                 "WorldTravelStage",
                 "WorldTravelDetail",
                 "WorldTravelQuick",
-                "WorldTravelConfirm"
+                "WorldTravelConfirm",
+                "WorldTravelBattleTab"
             ]
         },
         {
@@ -20,7 +21,8 @@
             "hits": [
                 "WorldTravelStage",
                 "WorldTravelDetail",
-                "WorldTravelQuick"
+                "WorldTravelQuick",
+                "WorldTravelBattleTab"
             ]
         },
         {
@@ -28,13 +30,15 @@
             "hits": [
                 "WorldTravelStage",
                 "WorldTravelDetail",
-                "WorldTravelQuick"
+                "WorldTravelQuick",
+                "WorldTravelBattleTab"
             ]
         },
         {
             "image": "world-home.png",
             "hits": [
-                "WorldTravelEntry"
+                "WorldTravelEntry",
+                "WorldTravelBattleTab"
             ]
         },
         {
@@ -42,7 +46,8 @@
             "hits": [
                 "WorldTravelTab",
                 "WorldTravelPanel",
-                "WorldTravelDone"
+                "WorldTravelDone",
+                "WorldTravelBattleTab"
             ]
         },
         {
@@ -51,7 +56,8 @@
                 "WorldTravelTab",
                 "WorldTravelPanel",
                 "WorldTravelFind",
-                "WorldTravelDone"
+                "WorldTravelDone",
+                "WorldTravelBattleTab"
             ]
         },
         {
@@ -59,7 +65,8 @@
             "hits": [
                 "WorldTravelStage",
                 "WorldTravelDetail",
-                "WorldTravelNoFree"
+                "WorldTravelNoFree",
+                "WorldTravelBattleTab"
             ]
         },
         {
@@ -68,14 +75,16 @@
                 "WorldTravelDetail",
                 "WorldTravelQuick",
                 "WorldTravelResult",
-                "WorldTravelResultOk"
+                "WorldTravelResultOk",
+                "WorldTravelBattleTab"
             ]
         },
         {
             "image": "world-stage.png",
             "hits": [
                 "WorldTravelEntry",
-                "WorldTravelStage"
+                "WorldTravelStage",
+                "WorldTravelBattleTab"
             ]
         }
     ]
