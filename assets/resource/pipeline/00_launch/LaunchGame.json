@@ -39,6 +39,10 @@
                 "cmd": "monkey -p com.miHoYo.HSoDv2Original -c android.intent.category.LAUNCHER 1"
             }
         },
+        // 必须显式放大：框架限制「在 next 里找后继」的总时长用的是**当前节点**的 timeout，
+        // 候选节点自己的 timeout 不参与。默认 20000 → 冷启动过 miHoYo logo +
+        // 「检查资源文件更新」（实测 20~90s）时，还没等到标题画面就被判 timeout 失败。
+        "timeout": 180000,
         "next": [
             "LaunchGameTitle",
             "LaunchGameHub"

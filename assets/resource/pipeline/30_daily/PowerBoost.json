@@ -111,8 +111,18 @@
                 ]
             }
         },
-        "timeout": 2000,
-        "next": ["PowerBoostShop"]
+        // 点完「前往」要等转场再判断落到哪个界面；timeout 用本节点的（框架限制的是
+        // 「在本节点的 next 里找」的总时长，写 2000 时商店还没打开就判失败了）。
+        "post_wait_freezes": 300,
+        "timeout": 6000,
+        // 兜底 PowerBoostDone：① 当天已买过时这一行还在、OCR 仍命中说明文字，
+        // 但「前往」失效，点了进不去（实测 2026-10-20）；② target_offset 以识别框内
+        // 随机点为基准，说明框宽 321px 而「前往」按钮只有 90px，有概率点空。
+        // 两种情况都收尾回主界面，不拖垮整条一键日常。
+        "next": [
+            "PowerBoostShop",
+            "PowerBoostDone"
+        ]
     },
     "PowerBoostScroll": {
         "max_hit": 4,
@@ -217,6 +227,18 @@
                     "X0"
                 ]
             }
+        },
+        // 识别前先等画面冻结：本节点总是紧跟在 PowerBoostShopScroll（swipe）后面，
+        // 惯性滚动中识别到的是运动中的位置，实测偏差 37px，点击会落到「数量」和
+        // 「购买」之间的空隙里（点了没反应，PowerBoostConfirm 2s 后超时）。
+        "pre_wait_freezes": {
+            "time": 300,
+            "target": [
+                940,
+                160,
+                300,
+                460
+            ]
         },
         "action": {
             "type": "Click",

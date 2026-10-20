@@ -106,8 +106,18 @@
                 ]
             }
         },
-        "timeout": 2000,
-        "next": ["ResonanceRefreshShop"]
+        // 点完「前往」要等转场，再判断落到哪个界面。
+        // timeout 必须 ≥ 共鸣屋的加载时间：框架限制「在 next 里找后继」用的是**本节点**的
+        // timeout，写 2000 会在共鸣屋还没出来时就把节点判失败（实测 2294ms 中止整个任务）。
+        "post_wait_freezes": 300,
+        "timeout": 6000,
+        // 兜底 ResonanceRefreshDone：当天已经刷新过时，「共鸣之力」这一行还在、
+        // OCR 照样命中标题，但「前往」已失效，点了只把任务行标记完成、不会进共鸣屋。
+        // 没有这条兜底的话整个一键日常会在这里崩掉（实测 2026-10-20）。
+        "next": [
+            "ResonanceRefreshShop",
+            "ResonanceRefreshDone"
+        ]
     },
     "ResonanceRefreshScroll": {
         "max_hit": 4,

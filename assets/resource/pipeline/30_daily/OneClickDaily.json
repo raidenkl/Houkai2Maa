@@ -23,9 +23,14 @@
             "type": "DoNothing"
         },
         "rate_limit": 300,
+        // 末尾的 OneClickDailyResume 是 DirectHit 兜底，**必须留着**：
+        // 在桌面（游戏未启动）或没有导航栏的界面里 OCR「首页」不会命中，
+        // 只写 OCR 候选的话框架会把整个 next 列表重试到 timeout(20s) 才判失败，
+        // 而不是立刻降级。串行判定下 OCR 先失败、兜底立刻接住。
         "next": [
             "OneClickDailyNavHome",
-            "[JumpBack]CommonRewardPopup"
+            "[JumpBack]CommonRewardPopup",
+            "OneClickDailyResume"
         ]
     },
     "OneClickDailyNavHome": {
@@ -52,14 +57,12 @@
         "timeout": 3000,
         "next": [
             "OneClickDailyLaunchGate"
-        ],
-        "on_error": [
-            "OneClickDailyResume"
         ]
     },
     "OneClickDailyResume": {
-        // NavHome 识别不到「首页」时的接续点（游戏还没启动、或停在完全没有导航栏的界面）。
-        // 单独一个节点是为了让 next / on_error 不指向同一个目标（项目 check 会把重复路由判错）。
+        // 识别不到「首页」时的接续点（游戏还没启动、或停在完全没有导航栏的界面）。
+        // 由 OneClickDailyEntry 的 next 列表兜底命中；NavHome 自己写 on_error 是无效的
+        // —— 它只作为 next 候选参与识别，识别失败不会触发它自己的 on_error。
         "recognition": {
             "type": "DirectHit"
         },
