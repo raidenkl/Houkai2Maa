@@ -24,6 +24,41 @@
                 "ClubStaminaClubBtn",
                 "ClubStaminaHome"
             ]
+        },
+        {
+            // 未领取状态：按钮是「可领」，Claim 命中、Done 不能命中
+            "image": "club-claim.png",
+            "hits": [
+                "ClubStaminaEntry",
+                "ClubStaminaSocialTab",
+                "ClubStaminaPanel",
+                "ClubStaminaClaim",
+                "ClubStaminaHome"
+            ]
+        },
+        {
+            // 点「可领」弹出的「昨日社团贡献奖励」浮层：这里必须再点「领取」才到账。
+            // 浮层完全展开时会盖住「活跃度」，所以 ClubStaminaPanel 在图上是 miss。
+            "image": "club-reward-panel.png",
+            "hits": [
+                "ClubStaminaEntry",
+                "ClubStaminaSocialTab",
+                "ClubStaminaClaim",
+                "ClubStaminaRewardPanel",
+                "ClubStaminaHome"
+            ]
+        },
+        {
+            // 点「领取」后的「提示 / 奖励领取成功」，此时按钮已变「不可领」
+            "image": "club-reward-ok.png",
+            "hits": [
+                "ClubStaminaEntry",
+                "ClubStaminaSocialTab",
+                "ClubStaminaPanel",
+                "ClubStaminaRewardOk",
+                "ClubStaminaDone",
+                "ClubStaminaHome"
+            ]
         }
     ]
 }
