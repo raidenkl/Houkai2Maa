@@ -1,0 +1,358 @@
+{
+    // 勤劳的魔女 / 存在感一键领取（日常）
+    // 流程（实测 2026-10-20，1280x720，emulator-5554 官服）：
+    //   主界面左栏首个图标 → 存在感页签 →「勤劳的魔女」行（说明「累计消耗180体力」）
+    //   → 点该行右侧的「领取」→ 体力 +100（**不弹奖励窗**，直接到账、整行消失）
+    //   → 点顶部的「一键领取」→ 弹「已领取以下奖励」大浮层 → 点空白处关闭。
+    // 关键事实：
+    //   1) 「勤劳的魔女」完成判据是这一行的进度显示 `180/180`；未完成时是 `X/180`，
+    //      右侧没有「领取」按钮（点了也只会落到奖励图标上，无副作用）。
+    //      所以这里靠说明文字定位 + 重试（max_hit 3），点不中就当没有，安全放弃。
+    //   2) 领取**没有二级确认窗**，体力直接加满 100，行当场消失（实测 4/205 → 104/205）。
+    //   3) 「一键领取」文本被 OCR 读成「键领取」（最左的「一」贴边丢字），
+    //      expected 两个都写；按钮位置固定在顶部，写死 target。
+    //   4) 一键领取会弹居中的「已领取以下奖励」浮层，底部提示「(点击空白处关闭)」，
+    //      浮层外的左侧空白 (150,600) 点击可关闭（实测）。体力/道具在点下的瞬间就结算。
+    //   5) 全部任务领完后列表变成「今天没有任务了 / 明天再来吧」，一键领取按钮变灰。
+    //      点灰按钮不会有任何反应，所以 ClaimAllButton 的 next 末尾必须有降级出口。
+    "MagicWitchEntry": {
+        // 点左栏首个图标进存在感列表。图标只有 30x40，默认随机点会落到边缘，写死中心。
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    51,
+                    174
+                ]
+            }
+        },
+        "next": [
+            "MagicWitchPanel",
+            "MagicWitchTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "MagicWitchTab": {
+        // 从别的页签（每周任务/使魔探险）进来时补一下「存在感」页签。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    195,
+                    150,
+                    75
+                ],
+                "expected": ["存在感"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["MagicWitchPanel"]
+    },
+    "MagicWitchPanel": {
+        // 面板就绪判据：右上角的「当前存在感 X/150」。
+        // 不要用任务名或进度，那些随当天状态变。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    860,
+                    145,
+                    270,
+                    50
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "MagicWitchFind",
+            "MagicWitchScroll",
+            "MagicWitchDone"
+        ]
+    },
+    "MagicWitchFind": {
+        // 用说明文字「累计消耗180体力」定位这一行，再偏移到右侧的「领取」。
+        // 实测说明框 (406,636,182,27) 中心 (497,649)，「领取」按钮中心 (1037,667)
+        // → 偏移 (540,18)。框宽 182px 会让落点左右抖 ±91px，按钮只有 100px 宽，
+        // 单次命中率约 55%，所以靠 max_hit 3 重试；点偏只会落到奖励图标/进度上，无副作用。
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    250,
+                    780,
+                    430
+                ],
+                "expected": ["累计消耗180体力"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    540,
+                    18,
+                    0,
+                    0
+                ]
+            }
+        },
+        "timeout": 2500,
+        "next": ["MagicWitchPanel"]
+    },
+    "MagicWitchScroll": {
+        // 列表顺序随完成情况变化，「勤劳的魔女」不一定在首屏。
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    860,
+                    145,
+                    270,
+                    50
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    640,
+                    620
+                ],
+                "end": [
+                    640,
+                    250
+                ],
+                "duration": 500
+            }
+        },
+        "timeout": 3000,
+        "next": ["MagicWitchPanel"]
+    },
+    "MagicWitchDone": {
+        // 收尾（单跑时结束，一键日常里接「一键领取」）。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": []
+    },
+    "ClaimAllEntry": {
+        // 独立跑「一键领取」时的入口：主界面左栏首个图标。
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    130,
+                    110,
+                    100
+                ],
+                "template": "30_daily/FamiliarExplore/entry_icon.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    51,
+                    174
+                ]
+            }
+        },
+        "next": [
+            "ClaimAllPanel",
+            "ClaimAllTab",
+            "[JumpBack]CommonRewardPopup"
+        ]
+    },
+    "ClaimAllTab": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    195,
+                    150,
+                    75
+                ],
+                "expected": ["存在感"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 3000,
+        "next": ["ClaimAllPanel"]
+    },
+    "ClaimAllPanel": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    860,
+                    145,
+                    270,
+                    50
+                ],
+                "expected": ["当前存在感"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 5000,
+        "rate_limit": 500,
+        "next": [
+            "ClaimAllButton",
+            "ClaimAllEmpty",
+            "ClaimAllHome"
+        ]
+    },
+    "ClaimAllButton": {
+        // 顶部固定的「一键领取」。OCR 把「一」丢了、读成「键领取」，两种都写。
+        // 按钮位置不随列表滚动变化，写死中心 (1020,212) 比随机点稳。
+        "max_hit": 1,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    180,
+                    260,
+                    60
+                ],
+                "expected": ["键领取"]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1020,
+                    212
+                ]
+            }
+        },
+        "timeout": 3000,
+        // 点了之后三种结果：弹奖励浮层（有可领）/ 已经空了（按钮是灰的，点了没反应，
+        // 只能等超时）/ 页面异常。末尾的 ClaimAllHome 是兜底，不能省。
+        "next": [
+            "ClaimAllRewardPanel",
+            "ClaimAllEmpty",
+            "ClaimAllHome"
+        ]
+    },
+    "ClaimAllRewardPanel": {
+        // 一键领取的奖励清单浮层。标题固定在顶部居中。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    15,
+                    360,
+                    60
+                ],
+                "expected": ["已领取以下奖励"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 8000,
+        "rate_limit": 500,
+        "next": ["ClaimAllClose"]
+    },
+    "ClaimAllClose": {
+        // 浮层提示「(点击空白处关闭)」。点浮层外的左侧空白关掉它。
+        // 只在浮层确认出现后才执行，所以不会误点到列表里的任务。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    150,
+                    600
+                ]
+            }
+        },
+        "post_delay": 800,
+        "timeout": 3000,
+        "next": [
+            "ClaimAllEmpty",
+            "ClaimAllHome"
+        ]
+    },
+    "ClaimAllEmpty": {
+        // 今日任务全部领完：列表变成「今天没有任务了 / 明天再来吧」。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    300,
+                    360,
+                    400,
+                    130
+                ],
+                "expected": ["今天没有任务了"]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 3000,
+        "next": ["ClaimAllHome"]
+    },
+    "ClaimAllHome": {
+        // 收尾回主界面：顶部导航「首页」。任务完成的横幅会盖住导航，靠识别自然等它消失。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    615,
+                    50,
+                    80,
+                    52
+                ],
+                "expected": ["首页"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 8000,
+        "next": []
+    }
+}

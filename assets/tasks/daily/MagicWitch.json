@@ -1,0 +1,26 @@
+{
+    // 存在感日常的收尾两步：领「勤劳的魔女」的 100 体力，再把当天所有日常奖励一键领取。
+    // 由 assets/interface.json 的 import 引入；改动后跑 npm run lint 校验引用。
+    "task": [
+        {
+            "name": "MagicWitch",
+            "label": "勤劳的魔女",
+            "entry": "MagicWitchEntry",
+            "default_check": true,
+            "description": "进存在感列表找「勤劳的魔女」（累计消耗 180 体力）。已完成时点该行的「领取」，体力直接 +100 且整行消失。没完成（进度 X/180）或当天已领过时会安全跳过——这一行只在有「领取」按钮时才点得中。建议放在「活动清体力」之后跑，那时 180 体力基本都用掉了。",
+            "group": [
+                "daily"
+            ]
+        },
+        {
+            "name": "ClaimAll",
+            "label": "存在感一键领取",
+            "entry": "ClaimAllEntry",
+            "default_check": true,
+            "description": "进存在感列表点顶部的「一键领取」，把当天已完成的所有日常奖励（体力、水晶、材料）一次领完，并关掉奖励清单浮层。全部领完后列表显示「今天没有任务了」。放在「一键日常」的最后一步。",
+            "group": [
+                "daily"
+            ]
+        }
+    ]
+}

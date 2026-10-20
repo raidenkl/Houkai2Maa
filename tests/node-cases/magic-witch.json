@@ -1,0 +1,75 @@
+{
+    "configs": {
+        "name": "magic-witch",
+        "resource": "官服",
+        "controller": "安卓端",
+        "imageRoot": "screens"
+    },
+    "cases": [
+        {
+            // 存在感列表：「勤劳的魔女」进度 180/180、右侧有「领取」，说明当天已攒够 180 体力
+            "image": "magic-witch-list.png",
+            "hits": [
+                "MagicWitchTab",
+                "MagicWitchPanel",
+                "MagicWitchFind",
+                "MagicWitchScroll",
+                "MagicWitchDone",
+                "ClaimAllTab",
+                "ClaimAllPanel",
+                "ClaimAllButton",
+                "ClaimAllClose",
+                "ClaimAllHome"
+            ]
+        },
+        {
+            // 领完「勤劳的魔女」之后：整行消失（体力 4 → 104），只剩另外两个任务。
+            // 关键断言是 MagicWitchFind 必须 miss，否则会重复点空。
+            "image": "magic-witch-claimed.png",
+            "hits": [
+                "MagicWitchTab",
+                "MagicWitchPanel",
+                "MagicWitchScroll",
+                "MagicWitchDone",
+                "ClaimAllTab",
+                "ClaimAllPanel",
+                "ClaimAllButton",
+                "ClaimAllClose",
+                "ClaimAllHome"
+            ]
+        },
+        {
+            // 点「一键领取」弹出的「已领取以下奖励」浮层。
+            // 浮层会盖住顶部导航，所以 ClaimAllHome（识别「首页」）在图上 miss；
+            // 「当前存在感」在右上角没被盖住，面板判据仍然命中。
+            "image": "magic-witch-claimall.png",
+            "hits": [
+                "MagicWitchTab",
+                "MagicWitchPanel",
+                "MagicWitchScroll",
+                "MagicWitchDone",
+                "ClaimAllTab",
+                "ClaimAllPanel",
+                "ClaimAllButton",
+                "ClaimAllRewardPanel",
+                "ClaimAllClose"
+            ]
+        },
+        {
+            // 全部领完：列表变成「今天没有任务了 / 明天再来吧」，一键领取按钮变灰但文字仍在
+            "image": "magic-witch-empty.png",
+            "hits": [
+                "MagicWitchTab",
+                "MagicWitchPanel",
+                "MagicWitchScroll",
+                "MagicWitchDone",
+                "ClaimAllTab",
+                "ClaimAllPanel",
+                "ClaimAllButton",
+                "ClaimAllClose",
+                "ClaimAllEmpty",
+                "ClaimAllHome"
+            ]
+        }
+    ]
+}

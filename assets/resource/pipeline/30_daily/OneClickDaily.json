@@ -185,7 +185,33 @@
     },
     "OneClickDailyActivityGate": {
         // 活动清体力：默认跳过（吃光体力、且必须先填活动名）。
-        // 这也是「最后一步」，后面的 OneClickDailyEnd 只是收束。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyMagicWitchGate"
+        ]
+    },
+    "OneClickDailyMagicWitchGate": {
+        // 勤劳的魔女：排在活动清体力**之后**。
+        // 这个任务（累计消耗 180 体力）要靠前面刷本才会完成，放在前面必然领不到。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "rate_limit": 300,
+        "next": [
+            "OneClickDailyClaimAllGate"
+        ]
+    },
+    "OneClickDailyClaimAllGate": {
+        // 存在感一键领取：全流程最后一步，把当天已完成的所有日常奖励一次领完。
         "recognition": {
             "type": "DirectHit"
         },

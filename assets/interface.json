@@ -112,7 +112,8 @@
         "tasks/daily/WorldTravel.json",
         "tasks/daily/PowerBoost.json",
         "tasks/daily/ClubStamina.json",
-        "tasks/daily/ActivityFarm.json"
+        "tasks/daily/ActivityFarm.json",
+        "tasks/daily/MagicWitch.json"
     ],
     "preset": [
         {

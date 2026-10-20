@@ -10,7 +10,7 @@
             "label": "一键日常",
             "entry": "OneClickDailyEntry",
             "default_check": true,
-            "description": "按顺序跑完勾选的日常：启动游戏（含每日签到）→ 使魔探险 → 共鸣之力 → 火线救援 → 世界这么大 → 战力补强 → 社团领体力 → 活动清体力。每步都可以在下方「要执行的日常」里单独关掉；关掉的步骤会被直接跳过，不会中断后续步骤。活动清体力默认关闭，因为它会吃光体力且需要先填活动名。",
+            "description": "按顺序跑完勾选的日常：启动游戏（含每日签到）→ 使魔探险 → 共鸣之力 → 火线救援 → 世界这么大 → 战力补强 → 社团领体力 → 活动清体力 → 勤劳的魔女（+100 体力）→ 存在感一键领取。每步都可以在下方「要执行的日常」里单独关掉；关掉的步骤会被直接跳过，不会中断后续步骤。活动清体力默认关闭，因为它会吃光体力且需要先填活动名。",
             "group": [
                 "daily"
             ],
@@ -53,6 +53,16 @@
                 },
                 "ActivityFarmHome": {
                     "next": [
+                        "OneClickDailyMagicWitchGate"
+                    ]
+                },
+                "MagicWitchDone": {
+                    "next": [
+                        "OneClickDailyClaimAllGate"
+                    ]
+                },
+                "ClaimAllHome": {
+                    "next": [
                         "OneClickDailyEnd"
                     ]
                 }
@@ -89,6 +99,9 @@
                         "OneClickDailyFamiliarGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -102,7 +115,7 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["FamiliarExploreEntry"]
                         }
@@ -116,6 +129,9 @@
                         "OneClickDailyResonanceGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -129,7 +145,7 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["ResonanceRefreshEntry"]
                         }
@@ -143,6 +159,9 @@
                         "OneClickDailyFireRescueGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -156,7 +175,7 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["FireRescueEntry"]
                         }
@@ -170,6 +189,9 @@
                         "OneClickDailyWorldTravelGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -183,7 +205,7 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["WorldTravelEntry"]
                         }
@@ -197,6 +219,9 @@
                         "OneClickDailyPowerBoostGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -210,7 +235,7 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["PowerBoostEntry"]
                         }
@@ -224,6 +249,9 @@
                         "OneClickDailyClubGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -237,7 +265,7 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["ClubStaminaEntry"]
                         }
@@ -255,6 +283,9 @@
                         "OneClickDailyActivityGate": {
                             // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
                             // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
                             "recognition": {
                                 "type": "OCR",
                                 "param": {
@@ -268,9 +299,69 @@
                                 }
                             },
                             "action": {"type": "Click"},
-                            "post_delay": 1500,
+                            "post_delay": 3000,
                             "timeout": 8000,
                             "next": ["ActivityFarmEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "勤劳的魔女",
+                    "label": "勤劳的魔女（领 100 体力）",
+                    "description": "进存在感列表找「勤劳的魔女」（累计消耗 180 体力）。已完成时点该行的「领取」，体力直接 +100、整行消失。排在活动清体力之后，因为要靠前面刷本才攒够 180 体力。没完成或已领过时安全跳过。",
+                    "pipeline_override": {
+                        "OneClickDailyMagicWitchGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 3000,
+                            "timeout": 8000,
+                            "next": ["MagicWitchEntry"]
+                        }
+                    }
+                },
+                {
+                    "name": "一键领取",
+                    "label": "存在感一键领取（最后一步）",
+                    "description": "点存在感列表顶部的「一键领取」，把当天已完成的所有日常奖励（体力、水晶、材料）一次领完，再关掉奖励清单浮层。建议保持勾选——前面的步骤只把任务做完，奖励要靠这一步才真正到手。",
+                    "pipeline_override": {
+                        "OneClickDailyClaimAllGate": {
+                            // 进这一步之前先点一次「首页」：上一步 *Home 的那一下可能被页面切换吞掉
+                            // （实测社团页回主界面时就是这样），这里补一刀。主界面上点「首页」无副作用。
+                            // post_delay 必须 ≥3000：从子页面回主界面有转场，实测 1.5s 时下面这一下
+                            // 点左栏图标会被吞掉（3 次挂 1 次，表现是 20s 后 Task timeout），
+                            // 3s 时 5/5 命中。
+                            "recognition": {
+                                "type": "OCR",
+                                "param": {
+                                    "roi": [
+                                        615,
+                                        50,
+                                        80,
+                                        52
+                                    ],
+                                    "expected": ["首页"]
+                                }
+                            },
+                            "action": {"type": "Click"},
+                            "post_delay": 3000,
+                            "timeout": 8000,
+                            "next": ["ClaimAllEntry"]
                         }
                     }
                 }
@@ -282,7 +373,9 @@
                 "火线救援",
                 "世界这么大",
                 "战力补强",
-                "社团领体力"
+                "社团领体力",
+                "勤劳的魔女",
+                "一键领取"
             ]
         }
     }
