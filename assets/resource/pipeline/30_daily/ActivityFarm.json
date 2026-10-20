@@ -19,6 +19,13 @@
     //      没有 →「补充体力（花 60 水晶）」。所以兑换上限设 1 次：2 点体力远不够 50 消耗，
     //      换完仍然会弹水晶窗，再多换只是把券一张张烧掉。水晶窗一律「取消」，绝不点「确定」。
     //   6) 死亡弹窗「救救我」的「确定」是花 60 水晶复活，必须走「返回」→「退出关卡」。
+    //   7) 点「开战」后要过加载页，战斗 HUD 8~20s 才出现；等多久由**当前节点**的 timeout
+    //      决定，所以中间夹 ActivityFarmWaitHud（DirectHit，45s），不能让 Start(8s) 直接等。
+    //      等结算的 ActivityFarmBattleWait 同理要 90s（自动战斗 10~20s + 淡出）。
+    //   8) 勾选框节点（Coupon/Again 的 on/off）**不能写 max_hit**：max_hit 是整次任务的
+    //      累计命中数，写了第二轮开始就被跳过，结算页卡死 45s 后任务失败。
+    //   9) 「再次挑战」后要 post_delay 等结算页淡出，否则 Entry 会在残留的「战斗结算」
+    //      上再命中 Result，形成假循环。
     "ActivityFarmEntry": {
         "recognition": {
             "type": "DirectHit"
@@ -357,7 +364,8 @@
         "on_error": ["ActivityFarmHome"]
     },
     "ActivityFarmCouponOn": {
-        "max_hit": 1,
+        // 不要加 max_hit：这两个节点靠「点完模板会从 off 变 on」自终止，
+        // 加了 max_hit 反而会让第二次进备战页时彻底失效（券再也勾不上）。
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -377,7 +385,6 @@
         "next": ["ActivityFarmReadyGate"]
     },
     "ActivityFarmCouponOff": {
-        "max_hit": 1,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -498,8 +505,30 @@
             "type": "Click"
         },
         "timeout": 8000,
-        "next": ["ActivityFarmSwitchEquip"],
+        "next": ["ActivityFarmWaitHud"],
         "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmWaitHud": {
+        // 点「开战」后先过加载页，战斗 HUD（右上暂停按钮）要 8~20s 才出现（实测 19s）。
+        // 等待时长由**当前节点**自己的 timeout 决定，候选节点的 timeout 不参与，
+        // 所以不能让 ActivityFarmStart(8s) 直接等 TemplateMatch——
+        // 实测 8s 一到就判 bad next，接着 on_error 里的主界面 OCR 也失败，
+        // 框架再重试 on_error 直到报 "error handling loop detected"，整条任务中止。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 45000,
+        "rate_limit": 500,
+        "next": ["ActivityFarmSwitchEquip"],
+        // 开战时体力已不够：战斗 HUD 永远不会出现，接住两个体力弹窗
+        "on_error": [
+            "ActivityFarmExchangePopup",
+            "ActivityFarmCrystalPopup",
+            "ActivityFarmHome"
+        ]
     },
     "ActivityFarmSwitchEquip": {
         // 等战斗 HUD 出来（暂停按钮是战斗内独有元素），再点左侧头像切到备用装备套装
@@ -535,12 +564,15 @@
         ]
     },
     "ActivityFarmBattleWait": {
+        // 等自动战斗打完：切到备用装备后约 10~20s 清场，慢的时候 30s+。
+        // 默认 timeout 是 20s，卡在快速清场那一档，打久了就判 bad next 直接中止。
         "recognition": {
             "type": "DirectHit"
         },
         "action": {
             "type": "DoNothing"
         },
+        "timeout": 90000,
         "rate_limit": 500,
         "next": [
             "ActivityFarmResult",
@@ -570,7 +602,8 @@
         ]
     },
     "ActivityFarmAgainOn": {
-        "max_hit": 1,
+        // 同 CouponOn/Off：靠「点完模板由 off 变 on」自终止，别写 max_hit——
+        // 写了就只对第一次结算页生效，第二轮开始直接跳过，整个循环卡死在结算页。
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -590,7 +623,6 @@
         "next": ["ActivityFarmAgain"]
     },
     "ActivityFarmAgainOff": {
-        "max_hit": 1,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -626,9 +658,16 @@
         "action": {
             "type": "Click"
         },
+        // 结算页是半透明盖层，点完还要淡出约 1s；立刻回 Entry 的话它会在残留的
+        // 「战斗结算」上再命中一次 ActivityFarmResult，形成假循环（实测第二轮就卡在这）。
+        "post_delay": 900,
         "timeout": 3000,
-        "next": ["ActivityFarmEntry"],
-        "on_error": ["ActivityFarmHome"]
+        // 「再次挑战」回的是助战好友列表（备用装备已选中），直接接 Assist；
+        // 万一是备战页则 Assist 识别不到，兜底回 Entry 重走一遍。
+        "next": [
+            "ActivityFarmAssist",
+            "ActivityFarmEntry"
+        ]
     },
     "ActivityFarmExchangePopup": {
         // 体力耗尽第一弹：兑换双倍体力。点「兑换」(532,458)，用掉 1 张双倍体力补 2 体力，
