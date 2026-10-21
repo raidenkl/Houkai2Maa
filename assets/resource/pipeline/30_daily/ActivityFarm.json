@@ -537,7 +537,12 @@
         ]
     },
     "ActivityFarmSwitchEquip": {
-        // 等战斗 HUD 出来（暂停按钮是战斗内独有元素），再点左侧头像切到备用装备套装
+        // 等战斗 HUD 出来（暂停按钮是战斗内独有元素），再点左侧头像切到备用装备套装。
+        //
+        // pre_wait_freezes：暂停按钮在「开战」转场（白闪/拉近）刚开始时就已可见，此时点头像
+        // 游戏会丢触摸（2026-10-21 实测：第二轮这里点了没生效，角色站桩到 BattleWait 超时）。
+        // 等画面连续 300ms 没有较大变化再点；战斗中画面一直在动时最多等 2.5s 就放行，
+        // 不会把节点卡死。
         "max_hit": 30,
         "recognition": {
             "type": "TemplateMatch",
@@ -550,6 +555,10 @@
                 ],
                 "template": ["30_daily/ActivityFarm/pause.png"]
             }
+        },
+        "pre_wait_freezes": {
+            "time": 300,
+            "timeout": 2500
         },
         "action": {
             "type": "Click",
@@ -664,9 +673,14 @@
         "action": {
             "type": "Click"
         },
-        // 结算页是半透明盖层，点完还要淡出约 1s；立刻回 Entry 的话它会在残留的
-        // 「战斗结算」上再命中一次 ActivityFarmResult，形成假循环（实测第二轮就卡在这）。
-        "post_delay": 900,
+        // 结算页是半透明盖层，点完要等它**真的淡出**再往下判。
+        // 2026-10-21 实测：只写 post_delay 900 时，1.36s 后仍能在残留画面上 OCR 到「战斗结算」，
+        // 于是 Entry→Result→AgainOff→Again 又跑一遍——双倍券被来回勾、再次挑战被点两次。
+        // post_wait_freezes 是自适应的：画面稳了立刻走，最长等 3s（超时也会放行，不会卡死）。
+        "post_wait_freezes": {
+            "time": 300,
+            "timeout": 3000
+        },
         "timeout": 3000,
         // 「再次挑战」回的是助战好友列表（备用装备已选中），直接接 Assist；
         // 万一是备战页则 Assist 识别不到，兜底回 Entry 重走一遍。

@@ -47,16 +47,25 @@
 
 ## 5. 延迟与等待
 
-- `pre_delay` / `post_delay` 默认 0，超过 1000ms 直接报错；
-- 等画面：`post_wait_freezes: {"time": 200, "target": [0,0,0,0]}`；
+- **`pre_delay` / `post_delay` 全局默认 200 / 400**（`default_pipeline.json`），
+  **不许改回 0**：转场期间的触摸会被客户端直接吞掉，实测表现为「点了没反应、
+  1.4s 后又点一次」和「战斗里切装备没生效」（见 game_facts §18.6）。lint E107 把关；
+- 单个节点写死小于 150 / 300 会报 E106（确需连点写进 `allowlist.json`）；
+- 超过 1000ms 的固定延迟直接报错（E105）——那种情况用下面的等待手段；
+- 等画面静止：`pre_wait_freezes` / `post_wait_freezes`，写成
+  `{"time": 300, "timeout": 3000}` 这种带超时的形式（超时即放行，不会卡死）；
 - 等目标：插一个识别节点（例如 `CommonLoading` 的 `inverse`）；
 - 战斗这种「时长不可预测」的等待，用结算界面识别 + `timeout` + `on_error` 重试。
 
 ## 6. 预任务（pretask）
 
-`interface.json` 的 `pretask` 会在 Controller 启动前执行（PI v2.7+，MFAAvalonia 已支持），
-失败则中止启动。目前只做一件事：**检查截图分辨率是否为 1280×720**，
-避免「分辨率不对 → 全量坐标偏移 → 识别不到」这种难查问题。
+> **默认关闭**。`interface.json` 里 `pretask` 与 `agent` 两段是注释掉的：MFAAvalonia 把
+> `pretask.exec` 无条件拼到 `<包根>/resource/base/` 下，裸 `python` 必然失败并让整条
+> 初始化链中止（界面显示成「连不上模拟器」）。本项目目前没有 Custom 节点，用不到 Agent；
+> 要启用必须随包分发嵌入式 Python，写法见 `interface.json` 里的注释。
+
+启用后，`pretask` 会在 Controller 启动前执行（PI v2.7+），失败则中止启动。
+它只做一件事：**检查截图分辨率是否为 1280×720**，避免「分辨率不对 → 全量坐标偏移 → 识别不到」。
 
 - 脚本：`assets/agent/pretask/device_prepare.py`（`--image` 可离线校验单张截图）
 - 多设备用 `MAAHOUKAI2_ADB_ADDRESS=<地址>` 指定目标；未指定时只告警不阻断

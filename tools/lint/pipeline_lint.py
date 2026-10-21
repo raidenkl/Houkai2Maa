@@ -47,6 +47,10 @@ BASE_WIDTH = 1280
 BASE_HEIGHT = 720
 MAX_DELAY_MS = 1000
 MIN_RATE_LIMIT = 100
+# 点击类动作的时序下限：转场/淡出期间的触摸会被客户端直接丢弃（2026-10-21 实测）。
+MIN_CLICK_PRE_DELAY = 150
+MIN_CLICK_POST_DELAY = 300
+CLICK_ACTIONS = {"Click", "Swipe", "LongPress"}
 MAX_TEMPLATE_WIDTH = BASE_WIDTH // 2
 MAX_TEMPLATE_HEIGHT = BASE_HEIGHT // 2
 MIN_TEMPLATE_SIDE = 4
@@ -307,6 +311,56 @@ def check_node_shape(ctx: LintContext, node: Node) -> None:
     if isinstance(rate_limit, (int, float)) and rate_limit < MIN_RATE_LIMIT:
         ctx.warn(
             "W101", f"`rate_limit={rate_limit}ms` 过小，可能造成频繁截图", file=rel, node=node.name, line=node.line
+        )
+
+
+def check_click_timing(ctx: LintContext, node: Node) -> None:
+    """点击类节点不能「贴着」上一次操作点下去。
+
+    起因（2026-10-21 实测）：`Default.pre_delay/post_delay` 都写 0 时，连环操作的间隔只有
+    60~130ms，页面转场/淡出期间的触摸事件被游戏直接丢弃 —— 「再次挑战」点不动会在 1.4s 后
+    再点一次（顺手把双倍券来回勾），战斗里点头像切备用装备没生效则角色站桩到超时。
+    节点自己没写 pre_delay/post_delay 时继承 `default_pipeline.json`，那条路由 E107 把关。
+    """
+
+    if section_type(node.data, "action") not in CLICK_ACTIONS:
+        return
+
+    rel = node.file.relative_to(REPO_ROOT).as_posix()
+    for key, floor in (("pre_delay", MIN_CLICK_PRE_DELAY), ("post_delay", MIN_CLICK_POST_DELAY)):
+        value = node.data.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, (int, float)) or value < floor:
+            ctx.error(
+                "E106",
+                f"点击类节点 `{key}={value}ms` 小于 {floor}ms：转场期间的点击会被客户端吞掉；"
+                "确需连点请写进 allowlist 并说明原因",
+                file=rel,
+                node=node.name,
+                line=node.line,
+            )
+
+
+def check_default_timing(ctx: LintContext) -> None:
+    """`default_pipeline.json` 的全局 pre/post_delay 必须给足缓冲。"""
+
+    path = RESOURCE_DIR / "default_pipeline.json"
+    if not path.is_file():
+        return
+
+    rel = path.relative_to(REPO_ROOT).as_posix()
+    default = load_jsonc(path).get("Default") or {}
+    for key, floor in (("pre_delay", MIN_CLICK_PRE_DELAY), ("post_delay", MIN_CLICK_POST_DELAY)):
+        value = default.get(key)
+        if isinstance(value, (int, float)) and value >= floor:
+            continue
+        ctx.error(
+            "E107",
+            f"全局 `Default.{key}={value}` 太小（要求 ≥{floor}ms，框架内置默认是 200）："
+            "改成 0 会让所有点击都贴着上一次操作落下，转场期间的触摸会被客户端吞掉",
+            file=rel,
+            node="Default",
         )
 
 
@@ -788,6 +842,7 @@ def run_lint() -> LintContext:
         check_ocr_expected(ctx, node)
         check_custom_ids(ctx, node, registered_actions, registered_recognitions)
         check_business_entry(ctx, node)
+        check_click_timing(ctx, node)
 
     interface_entries = load_interface(ctx)
     task_entries = check_task_fragments(ctx)
@@ -801,6 +856,8 @@ def run_lint() -> LintContext:
             load_jsonc(default_pipeline)
         except JsoncError as error:
             ctx.error("E001", f"default_pipeline.json 解析失败：{error}", file="assets/resource/default_pipeline.json")
+        else:
+            check_default_timing(ctx)
 
     return ctx
 

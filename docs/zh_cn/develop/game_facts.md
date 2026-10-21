@@ -733,6 +733,33 @@ timeout（20s）才报 `bad next`，表现为「点了任务后干等 20 秒什�
 > 规则：**位置固定的窄按钮写死 `target` 绝对坐标**；位置会变的（列表行）
 > 用「OCR 锚点 + offset + 降级出口」，并在 next 里补一个「点不进去就收尾」的候选。
 
+### 18.6 点击太快会被客户端直接吞掉（2026-10-21 实测）
+
+把 `default_pipeline.json` 的 `Default.pre_delay/post_delay` 写成 0 之后，
+`debug/maafw.log` 里的节点时间线是这样的（`ActivityFarm` 一次循环）：
+
+```
+19:16:09.472  Action.Starting   ActivityFarmAgain
+19:16:09.523  Action.Succeeded  ActivityFarmAgain      ← 点「再次挑战」
+19:16:10.423  NextList          ActivityFarmAssist     ← 1.36s 后仍在结算页
+19:16:10.882  Recognition.Succeeded ActivityFarmResult  ← 残留的半透明盖层
+19:16:10.941  Action            ActivityFarmAgainOff    ← 双倍券被反向勾回
+19:16:11.067  Action            ActivityFarmAgain       ← 再点一次「再次挑战」
+```
+
+连环操作的间隔只有 **60~130ms**（识别 ~30ms + 0 延迟），而页面转场/淡出要 0.5~1.5s，
+这段时间里的触摸事件游戏**直接丢弃**。实测到的两种后果：
+
+1. 「再次挑战」点了没反应 → 1.4s 后走假循环再点一次，顺手把双倍券来回勾两次；
+2. 战斗里点左侧头像切备用装备没生效（暂停按钮在开战转场刚开始时就已可见，
+   此时点头像被吞）→ 角色站桩 → `ActivityFarmBattleWait` 90s 超时，任务失败。
+
+> 规则：**`Default.pre_delay/post_delay` 不许写 0**（现用 200/400，lint E107 把关；
+> 点击类节点自己写小于 150/300 的值报 E106）。转场特别长的地方（结算页淡出、
+> 开战进战斗 HUD）再加 `post_wait_freezes` / `pre_wait_freezes`：
+> 自适应等画面静止，稳了立刻走、最长等 2~3s 就放行，比写死 900ms 稳。
+> 代价：一次点击到下一次点击约 650~700ms，一键日常整体慢 60~90s。
+
 ## 19. 勤劳的魔女 / 存在感一键领取（MagicWitch、ClaimAll，每日）
 
 > 实测 2026-10-20，1280x720，emulator-5554 官服。入口：主界面左栏首个图标 → 存在感页签。
