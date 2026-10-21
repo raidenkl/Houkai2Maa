@@ -8,7 +8,7 @@
     "version": "2.0.0-dev.1",
     "contact": "https://github.com/raidenkl/Houkai2Maa/issues",
     "license": "MIT",
-    "welcome": "欢迎使用 MaaHoukai2！首次使用请先按 README 完成环境准备（Python + maafw）。",
+    "welcome": "欢迎使用 MaaHoukai2！先在「控制器」里连上模拟器（分辨率建议 1280×720），再到「一键日常」勾选要跑的步骤即可。",
     "description": "崩坏学园2 日常自动化：启动/登录 → 回主界面 → 领奖 → 体力刷本。由 MaaFramework 驱动。",
     "controller": [
         {
@@ -49,26 +49,36 @@
             ]
         }
     ],
-    // 预任务：启动 Controller 前检查截图分辨率（PI v2.7+）
-    "pretask": {
-        "controller": [
-            "安卓端"
-        ],
-        "exec": "python",
-        "args": [
-            "./agent/pretask/device_prepare.py"
-        ],
-        "name": "DevicePrepare",
-        "label": "设备分辨率检查",
-        "description": "启动前检查设备截图是否为 1280×720（16:9）。不符会中止并给出修改方法。"
-    },
-    // Agent：pipeline 里的 Custom 动作/识别由它执行（需要 Python + maafw）
-    "agent": {
-        "child_exec": "python",
-        "child_args": [
-            "./agent/main.py"
-        ]
-    },
+    // 预任务 / Agent：**默认不启用**，发布包里没有 Python 运行时。
+    //
+    // 踩过的坑（2026-10-21 实测，MFAAvalonia 2.x）：
+    //   - pretask 的 `exec` 会被 MFA 无条件拼到 `<包根>/resource/base/` 下
+    //     （MaaInterface.ReplacePlaceholder(exec, ResourceBase) 没开路径检查），
+    //     所以写裸 `python` 必然被解释成 `resource\base\python` → Win32Exception(2)，
+    //     接着整条 MAA 初始化链中止，界面上的表现是「连不上模拟器」。
+    //   - agent 的 `child_exec` 走的是 `Path.Combine(DataRoot, ...)` + 存在性检查，
+    //     裸 `python` 会退化成 PATH 查找，本机没装 Python 就同样起不来。
+    // 而本项目当前 pipeline 里 **没有任何 Custom 节点**（Custom 命中数 0），
+    // Agent 属于预留位，不启用不影响日常功能。分流的双轨架构见 AGENTS.md。
+    //
+    // 想重新启用（例如开始写 Custom 动作）时的做法：随包分发一个嵌入式 Python
+    // （python/ 放在包根，pip 装好 maafw），然后把下面两段改成
+    //   "pretask": { "exec": "{PROJECT_DIR}/../../python/python.exe", ... }
+    //   "agent":   { "child_exec": "./python/python.exe", ... }
+    // 注意 `{PROJECT_DIR}` 在 MFA 里就是 `<包根>/resource/base`（不是包根）。
+    //
+    // "pretask": {
+    //     "controller": ["安卓端"],
+    //     "exec": "python",
+    //     "args": ["./agent/pretask/device_prepare.py"],
+    //     "name": "DevicePrepare",
+    //     "label": "设备分辨率检查",
+    //     "description": "启动前检查设备截图是否为 1280×720（16:9）。不符会中止并给出修改方法。"
+    // },
+    // "agent": {
+    //     "child_exec": "python",
+    //     "child_args": ["./agent/main.py"]
+    // },
     "group": [
         {
             "name": "oneclick",

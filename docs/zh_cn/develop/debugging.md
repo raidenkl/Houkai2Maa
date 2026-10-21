@@ -18,18 +18,42 @@
 
 ## 2. 先判断「卡在哪一层」
 
-| 现象                 | 可能原因                                  | 下一步                                                         |
-| -------------------- | ----------------------------------------- | -------------------------------------------------------------- |
-| 任务一开始就失败     | 资源没加载（缺 OCR 模型）、入口节点不存在 | `npm run check`；确认 `assets/resource/model/ocr/` 有 3 个文件 |
-| 卡在某个界面反复识别 | `next` 没覆盖当前画面                     | 用 `snapshot.py` 截图 + OCR，确认界面文案/图标                 |
-| 一直点同一个按钮     | 点击后没有识别新界面，`next` 又命中自己   | 加中间识别节点；给该节点 `max_hit`                             |
-| 误点到别的界面       | ROI 太大 / 模板太宽泛                     | 缩小 ROI、裁更独特的局部；用 `tests/node-cases` 做离线验证     |
-| 识别分数不上不下     | 模板不是 720p 裁的，或游戏画质不同        | 重新用 `crop.py` 从 720p 截图裁模板                            |
-| Custom 动作没生效    | ID 拼写不一致                             | `npm run lint` 会报 E204（未注册 ID）                          |
-| Agent 起不来         | 用户环境没装 `maafw`                      | `python -m pip install -r assets/agent/requirements.txt`       |
-| 循环不结束           | 计数逻辑或 `max_hit` 缺失                 | 看 `debug/agent.log` 里的 FarmLoop 日志                        |
+| 现象                 | 可能原因                                        | 下一步                                                                                             |
+| -------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 任务一开始就失败     | 资源没加载（缺 OCR 模型）、入口节点不存在       | `npm run check`；确认 `assets/resource/model/ocr/` 有 3 个文件                                     |
+| 卡在某个界面反复识别 | `next` 没覆盖当前画面                           | 用 `snapshot.py` 截图 + OCR，确认界面文案/图标                                                     |
+| 一直点同一个按钮     | 点击后没有识别新界面，`next` 又命中自己         | 加中间识别节点；给该节点 `max_hit`                                                                 |
+| 误点到别的界面       | ROI 太大 / 模板太宽泛                           | 缩小 ROI、裁更独特的局部；用 `tests/node-cases` 做离线验证                                         |
+| 识别分数不上不下     | 模板不是 720p 裁的，或游戏画质不同              | 重新用 `crop.py` 从 720p 截图裁模板                                                                |
+| Custom 动作没生效    | ID 拼写不一致                                   | `npm run lint` 会报 E204（未注册 ID）                                                              |
+| Agent 起不来         | 环境没装 Python/`maafw`（默认构建已关闭 Agent） | 先看 `interface.json` 的 `agent` 是否启用；启用时装 `pip install -r assets/agent/requirements.txt` |
+| 循环不结束           | 计数逻辑或 `max_hit` 缺失                       | 看 `debug/agent.log` 里的 FarmLoop 日志                                                            |
+
+### 界面报「连不上模拟器」，但 `adb devices` 里设备明明在线
+
+先翻 `logs/log-YYYYMMDD.log`，搜 `pretask failed`。2026-10-21 实测过的一次：
+
+```
+执行 PI pretask 失败
+System.ComponentModel.Win32Exception (2): An error occurred trying to start process
+'…\resource\base\python' with working directory '…\resource\base'. 系统找不到指定的文件。
+```
+
+这条**不是 ADB 问题**（同一份日志里 MuMu 已被指纹匹配、`127.0.0.1:16384` 在线）。
+真正的原因是预任务的 `exec` 写成了裸 `python`：
+
+- MFAAvalonia 执行 pretask 时，`FileName` 走的是
+  `MaaInterface.ReplacePlaceholder(exec, ResourceBase)`（**没有**开路径存在性检查），
+  即**无条件**拼到 `<包根>/resource/base/` 下 → `resource\base\python`。裸命令名永远拼不出东西。
+- 随后整条 MAA 初始化链中止（`InitializeMaaTasker` 直接 return null），
+  界面就把「初始化失败」显示成「连接失败 / Connection failed after all retries」。
+
+处理：发布包里不要留 `pretask` / `agent`（本项目当前没有 Custom 节点，用不到 Agent）。
+真要启用，必须随包分发 Python，并用 `{PROJECT_DIR}`（= `<包根>/resource/base`）拼绝对位置。
 
 ## 预任务失败（DevicePrepare）
+
+> 默认构建里 `pretask` 是注释掉的（见上一条）。以下是手动启用预任务时的排障表。
 
 预任务在 Controller 启动前执行，失败会中止启动。典型输出与处理：
 
