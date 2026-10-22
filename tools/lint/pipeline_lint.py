@@ -84,6 +84,12 @@ JUMP_BACK_PREFIX = "["
 
 CUSTOM_ACTION_RE = re.compile(r"custom_action\(\s*[\"']([^\"']+)[\"']")
 CUSTOM_RECOGNITION_RE = re.compile(r"custom_recognition\(\s*[\"']([^\"']+)[\"']")
+# 注册 ID 也允许写成「模块级字符串常量」：`LOOP_ACTION = "FarmLoop"` +
+# `@AgentServer.custom_action(LOOP_ACTION)`。只认字面量会让这种写法在迁移时
+# 被误报成「未在 agent/ 注册」，所以这里把常量名也解析一遍。
+CUSTOM_CONST_RE = re.compile(r"^([A-Z][A-Z0-9_]*)\s*(?::\s*str\s*)?=\s*[\"']([A-Za-z][A-Za-z0-9_]*)[\"']", re.M)
+CUSTOM_ACTION_REF_RE = re.compile(r"custom_action\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*[,)]")
+CUSTOM_RECOGNITION_REF_RE = re.compile(r"custom_recognition\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*[,)]")
 
 
 @dataclass
@@ -810,16 +816,48 @@ def check_task_fragments(ctx: LintContext) -> set[str]:
 # --------------------------------------------------------------------------- #
 
 
-def scan_agent_registrations() -> tuple[set[str], set[str]]:
+def scan_agent_registrations(root: Path | None = None) -> tuple[set[str], set[str], set[str]]:
+    """扫描 agent/ 下注册的自定义件 ID。
+
+    返回 `(actions, recognitions, unresolved)`：
+    * 前两者是能解析出来的 ID（字面量或模块级字符串常量）；
+    * `unresolved` 是「装饰器实参是标识符但找不到对应常量」的现场描述，
+      由调用方报 E204 —— 静默忽略会让真正的注册缺失在运行期才炸。
+
+    两遍扫描：先收集所有模块的常量，再解析引用（常量可能定义在另一个模块里）。
+    `root` 仅供单测注入临时目录，默认扫仓库的 `assets/agent`。
+    """
+
     actions: set[str] = set()
     recognitions: set[str] = set()
-    if not AGENT_DIR.is_dir():
-        return actions, recognitions
-    for path in AGENT_DIR.rglob("*.py"):
+    unresolved: set[str] = set()
+    agent_dir = root if root is not None else AGENT_DIR
+    if not agent_dir.is_dir():
+        return actions, recognitions, unresolved
+
+    sources: list[tuple[str, str, dict[str, str]]] = []
+    constants: dict[str, str] = {}
+    for path in agent_dir.rglob("*.py"):
         text = path.read_text(encoding="utf-8", errors="ignore")
+        rel = path.relative_to(REPO_ROOT).as_posix() if path.is_relative_to(REPO_ROOT) else path.name
+        local = dict(CUSTOM_CONST_RE.findall(text))
+        sources.append((rel, text, local))
+        constants.update(local)
+
+    for rel, text, local in sources:
         actions.update(CUSTOM_ACTION_RE.findall(text))
         recognitions.update(CUSTOM_RECOGNITION_RE.findall(text))
-    return actions, recognitions
+        refs = [(ref, actions, "custom_action") for ref in CUSTOM_ACTION_REF_RE.findall(text)]
+        refs += [(ref, recognitions, "custom_recognition") for ref in CUSTOM_RECOGNITION_REF_RE.findall(text)]
+        for ref, bucket, kind in refs:
+            # 先查本模块，再查全局：不同模块常用同名常量（如 RECOGNITION_ID），
+            # 只查全局会被后扫描到的文件覆盖，导致另一个 ID 凭空消失。
+            resolved = local.get(ref) or constants.get(ref)
+            if resolved:
+                bucket.add(resolved)
+            else:
+                unresolved.add(f"{rel}: {kind}({ref})")
+    return actions, recognitions, unresolved
 
 
 # --------------------------------------------------------------------------- #
@@ -830,7 +868,9 @@ def scan_agent_registrations() -> tuple[set[str], set[str]]:
 def run_lint() -> LintContext:
     ctx = LintContext()
     collect_nodes(ctx)
-    registered_actions, registered_recognitions = scan_agent_registrations()
+    registered_actions, registered_recognitions, unresolved_ids = scan_agent_registrations()
+    for spot in sorted(unresolved_ids):
+        ctx.error("E204", f"Custom ID 必须是字符串字面量或模块级字符串常量，无法解析：{spot}")
 
     for node in ctx.nodes.values():
         check_node_shape(ctx, node)

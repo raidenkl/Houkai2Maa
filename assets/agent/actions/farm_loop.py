@@ -66,7 +66,7 @@ def progress() -> FarmProgress:
     return _progress
 
 
-@AgentServer.custom_action(LOOP_ACTION)
+@AgentServer.custom_action("FarmLoop")
 class FarmLoop(CustomAction):
     def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
         try:
@@ -91,7 +91,7 @@ class FarmLoop(CustomAction):
         return True
 
 
-@AgentServer.custom_action(RESET_ACTION)
+@AgentServer.custom_action("FarmReset")
 class FarmReset(CustomAction):
     """任务入口处调用，确保每次运行从 0 开始计数。"""
 
@@ -101,7 +101,7 @@ class FarmReset(CustomAction):
         return True
 
 
-@AgentServer.custom_action(FAIL_ACTION)
+@AgentServer.custom_action("FarmFail")
 class FarmFail(CustomAction):
     """记录一次失败，并在超过上限时结束循环。
 
@@ -157,7 +157,7 @@ class FarmFail(CustomAction):
         return True
 
 
-@AgentServer.custom_action(NOTE_ACTION)
+@AgentServer.custom_action("FarmNote")
 class FarmNote(CustomAction):
     """给 loop 打「体力不足」标记。
 
