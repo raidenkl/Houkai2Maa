@@ -97,7 +97,7 @@ jobs:
           foreach ($junk in @("Lib\test", "Lib\idlelib", "Lib\tkinter", "Lib\lib2to3", "Lib\ensurepip")) {
             Remove-Item -Recurse -Force (Join-Path "python" $junk) -ErrorAction SilentlyContinue
           }
-          if (-not (Test-Path "python\python.exe")) { throw "运行时布局异常：python\python.exe 不存在" }
+          if (-not (Test-Path "python\python.exe")) { throw "unexpected runtime layout: python\python.exe not found" }
           & python\python.exe -V
           & python\python.exe tools/dev/verify_agent_runtime.py
 

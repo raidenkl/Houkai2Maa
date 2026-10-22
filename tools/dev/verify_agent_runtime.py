@@ -32,11 +32,31 @@ EXPECTED_RECOGNITIONS = {"StaminaInsufficient", "PanelState"}
 REGISTRY_TIMEOUT = 120
 
 
-def child_env() -> dict[str, str]:
-    """把仓库内的 `.pylib` 传给子进程。
+def force_utf8_console() -> None:
+    """把 stdout/stderr 切到 UTF-8。
 
-    CI 里 maafw 装在 site-packages，不需要这一步；本地开发机依赖 `.pylib`，
+    本脚本会打印中文。GitHub 的 windows-latest 控制台是 **cp1252**，
+    直接 print 中文会抛 `UnicodeEncodeError` 并把整个作业打成失败
+    （2026-10-22 实测：python-win-x64 挂在 Verify runtime）。
+    本机是 cp936 所以看不见，只有 CI 才复现。
+    """
+
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except (AttributeError, ValueError):  # 非 TextIOWrapper（如被重定向到自定义流）
+            pass
+
+
+force_utf8_console()
+
+
+def child_env() -> dict[str, str]:
+    """把仓库内的 `.pylib` 传给子进程，并强制 UTF-8 输出。
+
+    CI 里 maafw 装在 site-packages，不需要 `.pylib`；本地开发机依赖 `.pylib`，
     不传的话子进程 `import maa` 会直接失败，报出误导性的「运行时不完整」。
+    `PYTHONIOENCODING` 是给子进程的同一份保险。
     """
 
     env = dict(os.environ)
@@ -47,6 +67,8 @@ def child_env() -> dict[str, str]:
     if existing:
         paths.append(existing)
     env["PYTHONPATH"] = os.pathsep.join(paths)
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"
     return env
 
 
