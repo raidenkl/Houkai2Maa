@@ -8,6 +8,7 @@ pipeline 传进来的 `custom_action_param` / `custom_recognition_param` 是任�
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from typing import Any
 
@@ -19,6 +20,29 @@ class ParamError(ValueError):
 def _get(params: dict[str, Any], key: str, default: Any) -> Any:
     value = params.get(key, default)
     return default if value is None else value
+
+
+def load_param(raw: Any) -> dict[str, Any]:
+    """把 `custom_*_param` 归一化成 dict。
+
+    框架的类型声明是 `str`（JSON 字符串），但实际传参既可能是 str 也可能是已经
+    解析好的对象（pipeline 里写 JSON 数组/对象时尤其如此）。统一在这里兜住，
+    避免每个自定义件都对 dict 调 `json.loads` 然后抛 TypeError。
+    """
+
+    if raw is None or raw == "":
+        return {}
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError as error:
+            raise ParamError(f"custom_*_param 不是合法 JSON：{error}") from error
+        if not isinstance(parsed, dict):
+            raise ParamError("custom_*_param 必须是 JSON 对象")
+        return parsed
+    raise ParamError(f"custom_*_param 类型不支持：{type(raw).__name__}")
 
 
 def as_int(

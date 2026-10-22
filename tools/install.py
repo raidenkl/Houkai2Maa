@@ -188,8 +188,19 @@ def verify_install():
     missing: list[str] = packaging.check_paths(interface, install_path)
 
     # 「有 Custom 节点却没有 agent 块」是比路径缺失更隐蔽的故障：
-    # pipeline 会被 MFA 正常加载，但自定义件永远不注册，表现为任务卡住或走降级路径。
-    missing.extend(packaging.custom_requires_agent(interface, install_path / "resource"))
+    # pipeline 会被 MFA 正常加载，但自定义件永远不注册，表现为任务直接收尾或卡住。
+    # 但只有「本来就该带运行时」的平台才把它当错误 —— android 等平台根本没有
+    # Python 运行时，那是已知限制（install 时已经打过 warning），不能让 CI 红。
+    resource_dir = install_path / "resource"
+    if packaging.supports_agent(os_name, arch):
+        missing.extend(packaging.custom_requires_agent(interface, resource_dir))
+    else:
+        custom_count = packaging.count_custom_nodes(resource_dir)
+        if custom_count:
+            print(
+                f"  [warn] {os_name}-{arch} 不带 Agent，{custom_count} 个 Custom 节点的任务"
+                "（如活动清体力）会直接收尾，不会真正执行"
+            )
 
     if missing:
         for entry in missing:

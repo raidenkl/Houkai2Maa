@@ -56,5 +56,6 @@ def test_custom_items_are_registered() -> None:
     actions = set(action_line.split(" ", 1)[1].split(","))
     recognitions = set(recognition_line.split(" ", 1)[1].split(","))
 
-    assert {"FarmLoop", "FarmReset", "FarmFail", "FarmNote", "SceneGuard", "SaveShot"} <= actions
+    assert {"FarmLoop", "FarmFail", "FarmNote", "FarmReset", "FarmRoute", "FarmRound"} <= actions
+    assert {"SceneGuard", "SaveShot"} <= actions
     assert {"StaminaInsufficient", "PanelState"} <= recognitions

@@ -307,7 +307,7 @@
                             "action": {"type": "Click"},
                             "post_delay": 3000,
                             "timeout": 8000,
-                            "next": ["ActivityFarmEntry"]
+                            "next": ["ActivityFarmBegin"]
                         },
                         // 第二轮刷本的挂载点：魔女那 100 体力是**点「领取」直接到账**的
                         // （不等一键领取），所以领完立刻接第二轮，把新体力刷掉；

@@ -1,4 +1,11 @@
-"""FarmLoop / FarmReset：刷本循环计数与收敛。
+"""FarmLoop / FarmFail / FarmNote：刷本循环计数与收敛（legacy 保留）。
+
+`FarmReset` 已迁到 `actions/farm_run.py`（活动清体力改用 FarmRoute/FarmRound
+那套显式状态机，重置逻辑必须和它同属一个模块，否则两处状态会打架）。
+
+保留本模块的原因：`FarmLoop`/`FarmFail`/`FarmNote` 仍是通用的「计数 + 提前收尾」
+工具，其它刷本类任务可以直接用；它的 `_progress` 与 `farm_run._state` 是两份独立
+状态，不要混用。
 
 放在 Agent 的原因：需要跨节点计数（每次回到结算界面 +1），并根据
 「次数达标 / 体力耗尽 / 失败次数」动态改写 `next`。这类逻辑用纯 JSON
@@ -31,9 +38,8 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 
-REGISTERED = ["FarmLoop", "FarmReset", "FarmFail", "FarmNote"]
+REGISTERED = ["FarmLoop", "FarmFail", "FarmNote"]
 LOOP_ACTION = "FarmLoop"
-RESET_ACTION = "FarmReset"
 FAIL_ACTION = "FarmFail"
 NOTE_ACTION = "FarmNote"
 
@@ -88,16 +94,6 @@ class FarmLoop(CustomAction):
 
         if stop:
             context.override_next(argv.node_name, [])
-        return True
-
-
-@AgentServer.custom_action("FarmReset")
-class FarmReset(CustomAction):
-    """任务入口处调用，确保每次运行从 0 开始计数。"""
-
-    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
-        reset()
-        logger.info("FarmReset：循环计数已清零（节点 %s）", argv.node_name)
         return True
 
 

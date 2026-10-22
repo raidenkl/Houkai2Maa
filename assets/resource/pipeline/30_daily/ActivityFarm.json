@@ -31,12 +31,114 @@
     //      「每轮都要用一次」的节点（页签、BONUS 定位、体力弹窗…）都要按 2 轮留额度，
     //      否则第二轮会在第一步就被整段跳过，表现为 bad next / 卡在关卡页。
     //      只有「全局只该发生一次」的（兑换双倍体力）才保留 1。
-    "ActivityFarmEntry": {
+    //  11) 2026-10-22 起改为「JSON 定格 + Agent 插点」：
+    //      「这一场算不算数 / 还能不能换体力 / 该不该收尾」这类跨节点累计交给
+    //      Agent 的 FarmReset / FarmRoute / FarmRound（逻辑在 assets/agent/common/farm_flow.py）。
+    //      识别、点击、坐标、等待全部留在 JSON，MFA 里仍然看得见图谱。
+    //      Agent 没启动或自定义件抛异常时不会改写 next，流程自动落回下面这份候选顺序，
+    //      等价于改造前的行为。**别再往这里加 max_hit 当轮次计数器**——那是历史 bug 的来源。
+    "ActivityFarmBegin": {
+        // 任务入口：先清零计数。第二轮从 ActivityFarmEntry 直接进（刻意跳过这里），
+        // 因为「勤劳的魔女补 100 体力」不该重置场次预算与兑换额度。
         "recognition": {
             "type": "DirectHit"
         },
         "action": {
-            "type": "DoNothing"
+            "type": "Custom",
+            "param": {
+                "custom_action": "FarmReset",
+                "custom_action_param": {
+                    "max_times": 20,
+                    "until_no_stamina": true,
+                    "max_deaths": 2,
+                    "max_unknown": 3,
+                    "exchange_limit": 1
+                }
+            }
+        },
+        "next": ["ActivityFarmEntry"],
+        // Agent 不在（没带运行时）时 Custom 动作是**硬失败**，实测 on_error 会接管。
+        // 直接退到 Home：表现为「任务收尾」，不会把整条一键日常卡死。
+        // 不退 Entry 的理由：它的动作同样是 Custom，一样会失败；而且 next 与 on_error
+        // 指向同一节点会被 `npm run check` 判「重复路由」。
+        "on_error": ["ActivityFarmHome"]
+    },
+    "ActivityFarmEntry": {
+        // 场景分发：改造前靠下面 14 个候选的**顺序**隐式表达「现在在哪个界面」，
+        // 现在由 FarmRoute 惰性探测 + 按累计状态决定去向。
+        //
+        // next 仍然有用：FarmRoute 遇到「一个都认不出」且未到上限时会**不干预**
+        // （返回 None），流程就落回这份原顺序，等价于改造前的行为。
+        // on_error 是 Agent 缺席时的兜底（Custom 动作失败 → 直接收尾回首页）。
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "FarmRoute",
+                "custom_action_param": {
+                    "max_times": 20,
+                    "until_no_stamina": true,
+                    "max_deaths": 2,
+                    "max_unknown": 3,
+                    "exchange_limit": 1,
+                    "stop_node": "ActivityFarmHome",
+                    "exchange_cancel_node": "ActivityFarmExchangeCancel",
+                    // 顺序即优先级；exchange 只探测「兑换体力」那一处 OCR，
+                    // 「换不换」由 exchange_used 状态决定（替代原来的 max_hit: 1）。
+                    "probe": [
+                        [
+                            "crystal",
+                            "ActivityFarmCrystalPopup"
+                        ],
+                        [
+                            "exchange",
+                            "ActivityFarmExchangePopup"
+                        ],
+                        [
+                            "dead",
+                            "ActivityFarmDead"
+                        ],
+                        [
+                            "need_stamina",
+                            "ActivityFarmNeedStamina"
+                        ],
+                        [
+                            "result",
+                            "ActivityFarmResult"
+                        ],
+                        [
+                            "ready",
+                            "ActivityFarmReady"
+                        ],
+                        [
+                            "assist",
+                            "ActivityFarmAssist"
+                        ],
+                        [
+                            "start",
+                            "ActivityFarmStart"
+                        ],
+                        [
+                            "stage",
+                            "ActivityFarmStage"
+                        ],
+                        [
+                            "list",
+                            "ActivityFarmList"
+                        ],
+                        [
+                            "activity_tab",
+                            "ActivityFarmActivityTab"
+                        ],
+                        [
+                            "battle_tab",
+                            "ActivityFarmBattleTab"
+                        ]
+                    ]
+                }
+            }
         },
         "rate_limit": 300,
         "next": [
@@ -608,7 +710,18 @@
             }
         },
         "action": {
-            "type": "DoNothing"
+            "type": "Custom",
+            "param": {
+                "custom_action": "FarmRound",
+                "custom_action_param": {
+                    "max_times": 20,
+                    "until_no_stamina": true,
+                    "max_deaths": 2,
+                    "max_unknown": 3,
+                    "exchange_limit": 1,
+                    "stop_node": "ActivityFarmHome"
+                }
+            }
         },
         "timeout": 45000,
         "next": [

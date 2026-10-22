@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from common.params import ParamError, as_bool, as_int, as_node_list, as_str, as_str_list
+from common.params import ParamError, as_bool, as_int, as_node_list, as_str, as_str_list, load_param
 from common.state import STATE_AVAILABLE, STATE_CLAIMED, classify_panel
 
 
@@ -42,6 +42,19 @@ def test_as_str_and_lists() -> None:
     assert as_node_list({"n": ["[JumpBack]NavHome"]}, "n") == ["[JumpBack]NavHome"]
     with pytest.raises(ParamError):
         as_str_list({"l": [1]}, "l")
+
+
+def test_load_param_normalizes_str_dict_and_none() -> None:
+    """框架声明是 JSON 字符串，实际两种都可能传进来。"""
+
+    assert load_param(None) == {}
+    assert load_param("") == {}
+    assert load_param({"a": 1}) == {"a": 1}
+    assert load_param('{"a": 1}') == {"a": 1}
+    with pytest.raises(ParamError):
+        load_param("{broken")
+    with pytest.raises(ParamError):
+        load_param("[1, 2]")
 
 
 def test_panel_state_classify() -> None:

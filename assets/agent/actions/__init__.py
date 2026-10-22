@@ -7,9 +7,9 @@
 
 from __future__ import annotations
 
-from . import farm_loop, save_shot, scene_guard
+from . import farm_loop, farm_run, save_shot, scene_guard
 
-MODULES = (farm_loop, save_shot, scene_guard)
+MODULES = (farm_loop, farm_run, save_shot, scene_guard)
 
 
 def register_all() -> list[str]:

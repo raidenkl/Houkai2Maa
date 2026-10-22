@@ -24,12 +24,11 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from common.params import ParamError, as_bool, as_int, as_str
+from common.params import ParamError, as_bool, as_int, as_str, load_param
 from common.state import (
     STOP_DEATH_LIMIT,
     STOP_STAMINA,
@@ -117,19 +116,7 @@ class RunParams:
 def _as_mapping(raw: Any) -> dict[str, Any]:
     """`custom_action_param` 可能是 dict，也可能是 JSON 字符串（框架两种都见过）。"""
 
-    if raw is None or raw == "":
-        return {}
-    if isinstance(raw, dict):
-        return raw
-    if isinstance(raw, str):
-        try:
-            parsed = json.loads(raw)
-        except json.JSONDecodeError as error:
-            raise ParamError(f"custom_action_param 不是合法 JSON：{error}") from error
-        if not isinstance(parsed, dict):
-            raise ParamError("custom_action_param 必须是 JSON 对象")
-        return parsed
-    raise ParamError(f"custom_action_param 类型不支持：{type(raw).__name__}")
+    return load_param(raw)
 
 
 def _parse_probe(raw: Any) -> Probe:
