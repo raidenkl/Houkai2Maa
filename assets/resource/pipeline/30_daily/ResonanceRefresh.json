@@ -9,6 +9,24 @@
     //      故 Home 节点靠识别「首页」自然等待提示消失；
     //   4) 只剩付费刷新（剩余次数 0 次）时不点刷新，直接收尾，不消耗水晶；
     //   5) 找不到「共鸣之力」时下滑最多 4 次后正常收尾（当天已完成的情况）。
+    // 入口分流：单独运行本任务时，界面可能停在上一次失败残留的共鸣屋（一键日常崩在半路时就是这样）。
+    // DirectHit 保证入口一定进得去（主界面没有可 OCR 的固定入口文案），
+    // 再按「剩余次数」判断：已在共鸣屋就直接续跑，否则回落原入口点左栏图标。
+    // 实测 2026-10-22：单跑任务时界面停在共鸣屋，ResonanceRefreshEntry 模板匹配只有 0.469（阈值 0.85），
+    // 20s 后 Task timeout 整个任务失败。
+    "ResonanceRefreshStart": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "next": [
+            "ResonanceRefreshShop",
+            "ResonanceRefreshEntry"
+        ]
+    },
     "ResonanceRefreshEntry": {
         "max_hit": 1,
         "recognition": {
@@ -182,6 +200,14 @@
         ]
     },
     "ResonanceRefreshFree": {
+        // 刷新按钮是 48x48 的固定圆形图标（圆心实测 1088,153，两天的截图逐像素一致），
+        // 而「剩余次数 N 次」的文字框宽 130、位置还会随字数浮动。
+        // 原来用 target_offset[150,20] 从文字框内随机点偏移，点击 x 落在 1021~1151 区间里随机，
+        // 只有约 37% 概率压中按钮（1064~1112）——2026-10-22 19:13:20 正好点在 1035,168 的空白处，
+        // 界面没反应、ResonanceRefreshConfirm 等不到弹窗，整个一键日常崩在共鸣之力。
+        // 结论：位置固定的窄按钮一律写死 target，别用 offset。
+        // max_hit 2 = 允许一次「点了被转场吞掉」的重试；两次都失败才交给 Home 收尾。
+        "max_hit": 2,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -203,16 +229,18 @@
         "action": {
             "type": "Click",
             "param": {
-                "target_offset": [
-                    150,
-                    20,
-                    0,
-                    0
+                "target": [
+                    1088,
+                    153
                 ]
             }
         },
-        "timeout": 2000,
-        "next": ["ResonanceRefreshConfirm"]
+        "timeout": 3000,
+        "next": [
+            "ResonanceRefreshConfirm",
+            "ResonanceRefreshFree",
+            "ResonanceRefreshHome"
+        ]
     },
     "ResonanceRefreshConfirm": {
         "recognition": {
@@ -230,13 +258,15 @@
         "action": {
             "type": "Click",
             "param": {
+                // 弹窗按钮实测：确定圆心 (533,452)、取消圆心 (747,452)，按钮约 200x58。
+                // 确定用固定点，取消交给识别框中心（「取消」二字本身就在按钮正中）。
                 "target": [
-                    531,
-                    446
+                    533,
+                    452
                 ]
             }
         },
-        "timeout": 4000,
+        "timeout": 6000,
         "next": ["ResonanceRefreshHome"],
         "on_error": ["ResonanceRefreshCancel"]
     },

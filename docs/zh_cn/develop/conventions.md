@@ -40,6 +40,7 @@
 | 导航节点    | `Nav*`                      | `NavHome`、`NavEnterSignIn`       |
 | 日常节点    | `<Task>*`                   | `DailySignInMain`                 |
 | 任务入口    | `<Task>Entry`               | `DailyFullEntry`                  |
+| 入口分流    | `<Task>Start`               | `ResonanceRefreshStart`           |
 | 内部节点    | `__<Task>*`                 | `__FarmWaitResult`                |
 | 自定义件 ID | PascalCase，与节点名无关    | `FarmLoop`、`PanelState`          |
 | 图片        | 与 pipeline 同构目录，ASCII | `30_daily/SignIn/claim.png`       |
@@ -56,6 +57,15 @@
   `{"time": 300, "timeout": 3000}` 这种带超时的形式（超时即放行，不会卡死）；
 - 等目标：插一个识别节点（例如 `CommonLoading` 的 `inverse`）；
 - 战斗这种「时长不可预测」的等待，用结算界面识别 + `timeout` + `on_error` 重试。
+
+### 5.1 点击坐标
+
+- **位置固定、且比识别框窄的目标一律写死 `action.param.target`**；
+- `target_offset` 的基准是「识别框内随机点」，不是框心：框宽本身就是抖动范围。
+  锚在宽文字上、偏移到旁边窄按钮时，命中概率 ≈ 目标宽 / 框宽，
+  一键日常的共鸣之力就是 24/130 的按钮配 130 宽的锚点，约 37% 命中率（2026-10-22 崩掉）；
+- 只有「目标随内容浮动」（列表行、条目标题）才用 `target_offset`，且偏移量按框**中心**算；
+- 坐标一律 1280x720；窄按钮的圆心用像素测（`debug/step.py` 可现场截图 + OCR 复核）。
 
 ## 6. 预任务（pretask）
 
