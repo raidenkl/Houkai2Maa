@@ -22,6 +22,7 @@ except ModuleNotFoundError as e:
     ) from e
 
 from configure import configure_ocr_model
+from shared import packaging
 
 working_dir = Path(__file__).parent.parent.resolve()
 
@@ -108,7 +109,7 @@ def install_deps():
         )
 
 
-def install_resource():
+def install_resource(has_python: bool = False):
 
     configure_ocr_model()
 
@@ -126,9 +127,32 @@ def install_resource():
         interface = jsonc.load(f)
 
     interface["version"] = version
+    # agent 块由打包注入，仓库里的 interface.json 不写：开发机直接指向 assets/ 时
+    # 没有 python/ 目录，写了会让 MFAAvalonia 的初始化链中止（表现为「连不上模拟器」）。
+    packaging.apply_agent(interface, os_name, arch, has_python)
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
         jsonc.dump(interface, f, ensure_ascii=False, indent=4)
+
+
+def install_python() -> bool:
+    """把 `deps/python`（嵌入式解释器 + maafw）拷进包根，供 agent.child_exec 使用。
+
+    CI 的 `python-win-x64` 作业负责准备 `deps/python`；本机没有该目录时返回 False，
+    打包结果退化为「纯 JSON 包」，自检依然通过。
+    """
+
+    source = working_dir / "deps" / packaging.RUNTIME_DIR
+    if not packaging.supports_agent(os_name, arch) or not source.is_dir():
+        return False
+    shutil.copytree(
+        source,
+        install_path / packaging.RUNTIME_DIR,
+        dirs_exist_ok=True,
+        ignore=shutil.ignore_patterns(*packaging.RUNTIME_IGNORE),
+    )
+    print(f"已打包 Python 运行时：{packaging.RUNTIME_DIR}/")
+    return True
 
 
 def install_chores():
@@ -152,7 +176,7 @@ def install_agent():
 
 
 def verify_install():
-    """安装后自检：interface 里引用的 import / pretask / agent 脚本是否都在包内。"""
+    """安装后自检：interface 里引用的 import / pretask / agent 路径是否都在包内。"""
 
     interface_file = install_path / "interface.json"
     if not interface_file.is_file():
@@ -161,29 +185,11 @@ def verify_install():
     from shared.jsonc import load_jsonc
 
     interface = load_jsonc(interface_file)
-    missing: list[str] = []
+    missing: list[str] = packaging.check_paths(interface, install_path)
 
-    for item in interface.get("import") or []:
-        if not (install_path / item).is_file():
-            missing.append(f"import: {item}")
-
-    pretask = interface.get("pretask")
-    pretasks = pretask if isinstance(pretask, list) else ([pretask] if pretask else [])
-    for item in pretasks:
-        if not isinstance(item, dict):
-            continue
-        for arg in item.get("args") or []:
-            if isinstance(arg, str) and arg.startswith("./") and not (install_path / arg).is_file():
-                missing.append(f"pretask args: {arg}")
-
-    agent = interface.get("agent")
-    agents = agent if isinstance(agent, list) else ([agent] if agent else [])
-    for item in agents:
-        if not isinstance(item, dict):
-            continue
-        for arg in item.get("child_args") or []:
-            if isinstance(arg, str) and arg.startswith("./") and not (install_path / arg).is_file():
-                missing.append(f"agent args: {arg}")
+    # 「有 Custom 节点却没有 agent 块」是比路径缺失更隐蔽的故障：
+    # pipeline 会被 MFA 正常加载，但自定义件永远不注册，表现为任务卡住或走降级路径。
+    missing.extend(packaging.custom_requires_agent(interface, install_path / "resource"))
 
     if missing:
         for entry in missing:
@@ -208,7 +214,9 @@ if __name__ == "__main__":
     install_path.mkdir(parents=True, exist_ok=True)
     if not args.no_deps:
         install_deps()
-    install_resource()
+    # 运行时要在写 interface.json 之前落位：apply_agent 靠这个返回值决定是否注入 agent 块。
+    has_python = install_python()
+    install_resource(has_python)
     install_chores()
     install_agent()
     install_tasks()

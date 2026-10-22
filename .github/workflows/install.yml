@@ -67,8 +67,48 @@ jobs:
       is_release: ${{ steps.set_tag.outputs.is_release }}
       is_prerelease: ${{ steps.set_tag.outputs.is_prerelease }}
 
+  python-win-x64:
+    # Agent 的运行时。只给 win-x64 打：其它平台继续发纯 JSON
+    # （规则见 tools/shared/packaging.py::AGENT_PLATFORMS）。
+    # 用 setup-python 而不是猜 python-build-standalone 的下载地址：
+    # 前者由官方 action 维护，后者每次升级都要改 URL。
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install agent requirements
+        run: python -m pip install --disable-pip-version-check --no-warn-script-location -r assets/agent/requirements.txt
+
+      - name: Verify runtime
+        run: python tools/dev/verify_agent_runtime.py
+
+      - name: Stage relocatable runtime
+        shell: pwsh
+        run: |
+          $src = (& python -c "import sys, os; print(os.path.dirname(sys.executable))").Trim()
+          Write-Host "source runtime: $src"
+          New-Item -ItemType Directory -Force -Path python | Out-Null
+          Copy-Item -Recurse -Force "$src\*" python
+          # 体积大头：标准库里的测试/示例/图形界面，Agent 一条都用不到。
+          foreach ($junk in @("Lib\test", "Lib\idlelib", "Lib\tkinter", "Lib\lib2to3", "Lib\ensurepip")) {
+            Remove-Item -Recurse -Force (Join-Path "python" $junk) -ErrorAction SilentlyContinue
+          }
+          if (-not (Test-Path "python\python.exe")) { throw "运行时布局异常：python\python.exe 不存在" }
+          & python\python.exe -V
+          & python\python.exe tools/dev/verify_agent_runtime.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-win-x64
+          path: python
+          if-no-files-found: error
+
   install:
-    needs: meta
+    needs: [meta, python-win-x64]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -117,6 +157,29 @@ jobs:
         run: |
           rm -rf MFA/runtimes
       
+      - name: Download Python runtime
+        if: matrix.os == 'win' && matrix.arch == 'x86_64'
+        uses: actions/download-artifact@v4
+        with:
+          name: python-win-x64
+          path: pytmp
+
+      - name: Place Python runtime
+        if: matrix.os == 'win' && matrix.arch == 'x86_64'
+        shell: bash
+        run: |
+          mkdir -p deps/python
+          if [ -f pytmp/python/python.exe ]; then
+            cp -r pytmp/python/. deps/python/
+          elif [ -f pytmp/python.exe ]; then
+            cp -r pytmp/. deps/python/
+          else
+            echo "无法识别 python 运行时布局："
+            find pytmp -maxdepth 2 | head -30
+            exit 1
+          fi
+          ls -l deps/python/python.exe
+
       - name: Install
         shell: bash
         run: |

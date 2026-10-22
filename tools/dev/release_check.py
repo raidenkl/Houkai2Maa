@@ -26,38 +26,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from shared.bootstrap import REPO_ROOT  # noqa: E402
 from shared.jsonc import JsoncError, load_jsonc  # noqa: E402
+from shared.packaging import check_paths as check_interface_paths  # noqa: E402
 from shared.version import is_valid, matches_tag, parse  # noqa: E402
 
 INTERFACE_FILE = REPO_ROOT / "assets" / "interface.json"
 
 
 def check_paths(interface: dict) -> list[str]:
-    problems: list[str] = []
-    base = INTERFACE_FILE.parent
+    """仓库侧校验：import / pretask / agent 的相对路径都能解析。
 
-    for item in interface.get("import") or []:
-        if not (base / item).is_file():
-            problems.append(f"import 文件不存在：{item}")
+    注意：仓库的 interface.json **刻意不写 agent 块**（由 tools/install.py 打包时注入），
+    所以这里只校验已写出来的引用；「有 Custom 节点却没有 agent 块」由
+    `tools/install.py::verify_install` 在真正的安装目录里检查。
+    """
 
-    pretask = interface.get("pretask")
-    pretasks = pretask if isinstance(pretask, list) else ([pretask] if pretask else [])
-    for task in pretasks:
-        if not isinstance(task, dict):
-            continue
-        for arg in task.get("args") or []:
-            if isinstance(arg, str) and arg.startswith("./") and not (base / arg).is_file():
-                problems.append(f"pretask 脚本不存在：{arg}")
-
-    agent = interface.get("agent")
-    agents = agent if isinstance(agent, list) else ([agent] if agent else [])
-    for item in agents:
-        if not isinstance(item, dict):
-            continue
-        for arg in item.get("child_args") or []:
-            if isinstance(arg, str) and arg.startswith("./") and not (base / arg).is_file():
-                problems.append(f"agent 脚本不存在：{arg}")
-
-    return problems
+    return check_interface_paths(interface, INTERFACE_FILE.parent)
 
 
 def git_dirty() -> bool:
