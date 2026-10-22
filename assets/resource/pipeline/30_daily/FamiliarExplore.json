@@ -74,7 +74,8 @@
         ]
     },
     "FamiliarExploreClaim": {
-        "max_hit": 12,
+        // 12 太紧：一次任务最多 10 条已完成待领，加上「点了没弹窗」的补点可能超。
+        "max_hit": 16,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -87,19 +88,57 @@
                 "expected": ["点击领取奖励"]
             }
         },
+        // 领成功后条目会立刻消失、整列卡片上移（实测「已接取的探险数」5/10 → 4/10）。
+        // 弹窗关掉的瞬间列表还在重排，此时识别到的是过渡帧，「点击领取奖励」的框已经
+        // 不是最终位置，点下去会落空（2026-10-22 真机连挂两次都是这一下）。点击前先等
+        // 右栏稳定。
+        "pre_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                150,
+                380,
+                560
+            ],
+            "timeout": 1500
+        },
         "action": {
             "type": "Click"
         },
-        "timeout": 2500,
-        "next": ["FamiliarExploreReward"],
-        "on_error": ["FamiliarExploreSelect"]
+        "timeout": 2000,
+        // 点完没弹「获得奖励」只有两种可能：这一下被列表重排吞了，或这行的奖励其实
+        // 已经领掉了（文案还会残留一会儿）。两种都该回面板重新判定 —— 回到面板时列表
+        // 已经稳定：行没了就自然落到 Select/Scroll/Done，行还在就再领一次。
+        // 只写 Reward 一个候选会让整条一键日常崩掉（2026-10-22 实测）。
+        "next": [
+            "FamiliarExploreReward",
+            "FamiliarExplorePanel"
+        ]
     },
     "FamiliarExploreReward": {
+        // 「获得奖励」弹窗是**半透明盖层**：它开着的时候，底下的「点击领取奖励」
+        // 「已接取的探险数」照样能被 OCR 读到，所以下游节点根本不知道弹窗还没关。
+        // 2026-10-22 的失败就是这样来的：弹窗刚弹出来（还在放大淡入）就点了关闭，
+        // 这一下被入场动画吞掉 → 弹窗其实还开着 → 面板/领取节点全部"看穿"盖层 →
+        // 点「点击领取奖励」时点的其实还是遮罩 → 2s 后被判超时，整条一键日常失败。
+        // 每条领取命中一次，自引用补点再加几次；一次任务最多 10 条待领，额度要留够。
+        "max_hit": 15,
         "recognition": {
             "type": "OCR",
             "param": {
                 "expected": ["获得奖励"]
             }
+        },
+        // 等弹窗入场动画结束再点关闭（实测入场约 0.5s，252ms 时点下去必被吞）
+        "pre_wait_freezes": {
+            "time": 200,
+            "target": [
+                200,
+                140,
+                900,
+                300
+            ],
+            "timeout": 1500
         },
         "action": {
             "type": "Click",
@@ -110,17 +149,24 @@
                 ]
             }
         },
+        // 点完等盖层淡出 + 列表重排结束（实测淡出 1.3s 起，时间给短了后面还会点到遮罩）
         "post_wait_freezes": {
-            "time": 300,
+            "time": 600,
             "target": [
                 200,
                 140,
                 900,
                 300
-            ]
+            ],
+            "timeout": 3000
         },
         "timeout": 3000,
-        "next": ["FamiliarExplorePanel"]
+        // 自引用：还在弹（说明关闭没生效）就再点一次，直到盖层真的消失；
+        // 关掉了则「获得奖励」识别失败，候选落到面板继续领下一条。
+        "next": [
+            "FamiliarExploreReward",
+            "FamiliarExplorePanel"
+        ]
     },
     "FamiliarExploreSelect": {
         "max_hit": 6,
@@ -140,8 +186,12 @@
             "type": "Click"
         },
         "timeout": 2500,
-        "next": ["FamiliarExploreDispatch"],
-        "on_error": ["FamiliarExploreDone"]
+        // 兜底写进 next，不写 on_error：候选识别失败时 on_error 不会触发（实测），
+        // 只写一个候选会让整条链路卡到超时。
+        "next": [
+            "FamiliarExploreDispatch",
+            "FamiliarExplorePanel"
+        ]
     },
     "FamiliarExploreDispatch": {
         "recognition": {
@@ -169,8 +219,10 @@
             ]
         },
         "timeout": 5000,
-        "next": ["FamiliarExploreDepart"],
-        "on_error": ["FamiliarExplorePanel"]
+        "next": [
+            "FamiliarExploreDepart",
+            "FamiliarExplorePanel"
+        ]
     },
     "FamiliarExploreDepart": {
         "recognition": {
