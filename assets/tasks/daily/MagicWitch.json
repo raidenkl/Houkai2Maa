@@ -5,7 +5,7 @@
         {
             "name": "MagicWitch",
             "label": "勤劳的魔女",
-            "entry": "MagicWitchEntry",
+            "entry": "MagicWitchStart",
             "default_check": true,
             "description": "进存在感列表找「勤劳的魔女」（累计消耗 180 体力）。已完成时点该行的「领取」，体力直接 +100 且整行消失。没完成（进度 X/180）或当天已领过时会安全跳过——这一行只在有「领取」按钮时才点得中。建议放在「活动清体力」之后跑，那时 180 体力基本都用掉了。",
             "group": [

@@ -5,7 +5,7 @@
         {
             "name": "FireRescue",
             "label": "火线救援",
-            "entry": "FireRescueEntry",
+            "entry": "FireRescueStart",
             "default_check": true,
             "description": "打开主界面左侧「存在感」，下滑找到「火线救援」并点「前往」，进入多元裂缝后点击「使魔的爱」下方的关卡图标，用「快捷战斗」快速通关一次。今日副本次数用完时自动跳过（不会消耗水晶）。任务完成后回到主界面。需要从主界面开始。",
             "group": [

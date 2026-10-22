@@ -10,7 +10,25 @@
     //      改为 OCR 标签文字后固定向下偏移 84px 点击；
     //   3) 今日剩余次数用完后备战页只剩「选择助战好友」，「快捷战斗」会消失，
     //      因此备战页以「选择助战好友」为识别标志，找不到「快捷战斗」即视为今日已打完；
-    //   4) 找不到「火线救援」时下滑最多 4 次后正常收尾。
+    // 4) 找不到「火线救援」时下滑最多 4 次后正常收尾。
+    // 入口分流（实测 2026-10-22）：单跑本任务时界面可能停在上次失败残留的页面
+    // （存在感列表 / 多元裂缝地图），此时 Entry 的左栏图标模板识别不到（0.4x），
+    // 20s 后整个任务 `Task timeout`。DirectHit 保证入口一定进得去，再按页面特征续跑。
+    // 必须带 FireRescuePanel 候选：停在存在感列表时直接点左栏图标会导航到别处。
+    "FireRescueStart": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "next": [
+            "FireRescueMap",
+            "FireRescuePanel",
+            "FireRescueEntry"
+        ]
+    },
     "FireRescueEntry": {
         "max_hit": 1,
         "recognition": {

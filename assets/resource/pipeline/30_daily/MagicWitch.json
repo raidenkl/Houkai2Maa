@@ -15,6 +15,21 @@
     //      浮层外的左侧空白 (150,600) 点击可关闭（实测）。体力/道具在点下的瞬间就结算。
     //   5) 全部任务领完后列表变成「今天没有任务了 / 明天再来吧」，一键领取按钮变灰。
     //      点灰按钮不会有任何反应，所以 ClaimAllButton 的 next 末尾必须有降级出口。
+    // 入口分流（实测 2026-10-22 19:45 失败）：界面残留在存在感列表时，Entry 的
+    // 左栏图标模板识别不到 → 21s 后 `Task timeout`。DirectHit + 页面特征可续跑。
+    "MagicWitchStart": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "next": [
+            "MagicWitchPanel",
+            "MagicWitchEntry"
+        ]
+    },
     "MagicWitchEntry": {
         // 点左栏首个图标进存在感列表。图标只有 30x40，默认随机点会落到边缘，写死中心。
         "max_hit": 1,

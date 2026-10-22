@@ -1,4 +1,19 @@
 {
+    // 入口分流（实测 2026-10-22 18:51 失败）：界面残留在使魔探险页时，Entry 的左栏
+    // 图标模板识别不到 → 20s 后 `Task timeout`。DirectHit + 页面特征可续跑。
+    "FamiliarExploreStart": {
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "timeout": 10000,
+        "next": [
+            "FamiliarExplorePanel",
+            "FamiliarExploreEntry"
+        ]
+    },
     "FamiliarExploreEntry": {
         "max_hit": 1,
         "recognition": {

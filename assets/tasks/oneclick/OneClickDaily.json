@@ -123,7 +123,7 @@
                             "action": {"type": "Click"},
                             "post_delay": 3000,
                             "timeout": 8000,
-                            "next": ["FamiliarExploreEntry"]
+                            "next": ["FamiliarExploreStart"]
                         }
                     }
                 },
@@ -183,7 +183,7 @@
                             "action": {"type": "Click"},
                             "post_delay": 3000,
                             "timeout": 8000,
-                            "next": ["FireRescueEntry"]
+                            "next": ["FireRescueStart"]
                         }
                     }
                 },
@@ -367,7 +367,7 @@
                             "action": {"type": "Click"},
                             "post_delay": 3000,
                             "timeout": 8000,
-                            "next": ["MagicWitchEntry"]
+                            "next": ["MagicWitchStart"]
                         }
                     }
                 },
