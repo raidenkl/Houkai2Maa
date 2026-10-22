@@ -50,8 +50,21 @@ System.ComponentModel.Win32Exception (2): An error occurred trying to start proc
 - 随后整条 MAA 初始化链中止（`InitializeMaaTasker` 直接 return null），
   界面就把「初始化失败」显示成「连接失败 / Connection failed after all retries」。
 
-处理：发布包里不要留 `pretask` / `agent`（本项目当前没有 Custom 节点，用不到 Agent）。
-真要启用，必须随包分发 Python，并用 `{PROJECT_DIR}`（= `<包根>/resource/base`）拼绝对位置。
+处理：**不要手写 `pretask` / `agent`**。现在由 `tools/install.py` 在打包时按平台注入
+（`tools/shared/packaging.py`），win-x64 会带上 `python/` 运行时并用
+`./python/python.exe` 作 `child_exec`。真要手动启用，必须随包分发 Python，
+并用 `{PROJECT_DIR}`（= `<包根>/resource/base`）拼绝对位置。
+
+### Agent 起来了但自定义件不生效
+
+活动清体力依赖 3 个 Custom 动作（`FarmReset` / `FarmRoute` / `FarmRound`）。
+若任务在日志里表现为「刚进活动清体力就直接回首页」，按顺序查：
+
+1. `interface.json` 有没有 `agent` 块（`child_exec` 指向包内真实文件）；
+2. 包里有没有 `python/` 目录（`python/python.exe -V` 能跑）；
+3. `debug/agent.log` 有没有 `FarmRoute scene=...` 行 —— 没有就是 Agent 没连上；
+4. 有 `FarmRoute` 但一直 `scene=unknown`，说明 `probe` 里的节点在当前界面都不命中，
+   看 `debug/shots/unknown-*.png` 确认界面。
 
 ## 预任务失败（DevicePrepare）
 

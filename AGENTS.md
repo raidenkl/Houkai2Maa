@@ -15,6 +15,27 @@
     4. 设备/环境操作（包名探测、截图落盘）。
 - 不要为了「方便」把整条流程写成 Python；那样会失去可视化编辑、可视化调试与统一 UI。
 
+### 已经在用 Custom 节点的地方（2026-10-22 起）
+
+活动清体力（`30_daily/ActivityFarm.json`）是第一个混合改造的样板，照它抄：
+
+| Custom ID   | 挂在哪个节点         | 干什么                                  |
+| ----------- | -------------------- | --------------------------------------- |
+| `FarmReset` | `ActivityFarmBegin`  | 任务入口清零计数（第二轮刻意不经过它）  |
+| `FarmRoute` | `ActivityFarmEntry`  | 惰性探场景 + 按累计状态 `override_next` |
+| `FarmRound` | `ActivityFarmResult` | 计一场 + 判「再来一次」还是收尾         |
+
+三条**必须遵守**的约定（踩过就懂）：
+
+1. **判断逻辑放 `assets/agent/common/**`（纯函数、有 pytest），适配器只做「取图/调用/override」**。
+   `dryrun` / `replay` / `node-cases` 都不启动 Agent，写在适配器里的逻辑等于没有测试。
+2. **Custom 动作在 Agent 缺席时是硬失败**，只有节点自己的 `on_error` 能接管；
+   `next` 不会执行。所以每个 Custom 节点都要写 `on_error`（通常退到该任务的 Home）。
+   Agent 在跑但处理函数抛异常时，适配器会 `return True` 且不改写 `next`，
+   流程自然落回 JSON 的候选顺序 —— 这两条路径不一样，别混。
+3. **没有 Agent 就没有 Custom**：`interface.json` 的 `agent` 块由 `tools/install.py` 注入，
+   只有 win-x64 带 `python/` 运行时。`verify_install()` 会拦住「有 Custom 却没有 agent」的包。
+
 ## 目录地图
 
 ```tree

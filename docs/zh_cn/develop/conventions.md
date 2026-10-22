@@ -69,10 +69,15 @@
 
 ## 6. 预任务（pretask）
 
-> **默认关闭**。`interface.json` 里 `pretask` 与 `agent` 两段是注释掉的：MFAAvalonia 把
-> `pretask.exec` 无条件拼到 `<包根>/resource/base/` 下，裸 `python` 必然失败并让整条
-> 初始化链中止（界面显示成「连不上模拟器」）。本项目目前没有 Custom 节点，用不到 Agent；
-> 要启用必须随包分发嵌入式 Python，写法见 `interface.json` 里的注释。
+> **默认关闭，由 `tools/install.py` 打包时注入**。`interface.json` 里 `pretask` 与 `agent`
+> 两段是注释掉的：MFAAvalonia 把 `pretask.exec` 无条件拼到 `<包根>/resource/base/` 下，
+> 裸 `python` 必然失败并让整条初始化链中止（界面显示成「连不上模拟器」）。
+>
+> 现在活动清体力用到 3 个 Custom 动作（`FarmReset` / `FarmRoute` / `FarmRound`），
+> 所以 **win-x64 安装包必须带 `python/` 运行时**：`install.py` 检测到 `deps/python` 才注入
+> `agent` 块，`verify_install()` 会校验「有 Custom 节点就必须有 agent 块」。
+> 其它平台（android/macos/linux）不发运行时，含 Custom 节点的任务会直接收尾（install 时告警）。
+> 规则集中在 `tools/shared/packaging.py`。
 
 启用后，`pretask` 会在 Controller 启动前执行（PI v2.7+），失败则中止启动。
 它只做一件事：**检查截图分辨率是否为 1280×720**，避免「分辨率不对 → 全量坐标偏移 → 识别不到」。

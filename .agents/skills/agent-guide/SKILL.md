@@ -24,7 +24,8 @@ assets/agent/
 ├── main.py                     # 唯一入口：register_all() + AgentServer.start_up
 ├── actions/
 │   ├── __init__.py             # MODULES + register_all() -> list[str]
-│   ├── farm_loop.py            # FarmLoop / FarmReset / FarmFail / FarmNote
+│   ├── farm_loop.py            # FarmLoop / FarmFail / FarmNote（legacy 计数工具）
+│   ├── farm_run.py             # FarmReset / FarmRoute / FarmRound（活动清体力）
 │   ├── scene_guard.py          # SceneGuard
 │   └── save_shot.py            # SaveShot
 ├── recognitions/
@@ -32,8 +33,9 @@ assets/agent/
 │   ├── stamina.py              # StaminaInsufficient
 │   └── panel_state.py          # PanelState
 ├── common/                     # 纯逻辑（禁止 import maa，便于 pytest）
-│   ├── params.py               # 参数校验
+│   ├── params.py               # 参数校验 + load_param（str/dict 兼容）
 │   ├── state.py                # 循环/面板状态（纯函数）
+│   ├── farm_flow.py            # 活动清体力场景路由（纯函数，重点单测对象）
 │   ├── context.py              # 读取 PI_* 环境变量
 │   └── log.py
 └── tests/                      # pytest：只测 common + 纯函数
@@ -42,7 +44,9 @@ assets/agent/
 新增一个自定义件：
 
 1. 在 `actions/` 或 `recognitions/` 新建模块；
-2. 用 `@AgentServer.custom_action("<ID>")` / `@AgentServer.custom_recognition("<ID>")` 注册；
+2. 用 `@AgentServer.custom_action("<ID>")` / `@AgentServer.custom_recognition("<ID>")` 注册
+   （实参必须是**字符串字面量或模块级字符串常量**：lint 的正则扫不到 `REGISTERED[0]`
+   这类表达式，会直接报 E204）；
 3. 模块里定义 `REGISTERED = ["<ID>"]`；
 4. 在对应 `__init__.py` 的 `MODULES` 里加上模块；
 5. pipeline 里写同名字符串；`npm run lint` 会校验 ID 是否存在（E204）。
@@ -51,7 +55,8 @@ assets/agent/
 
 ## 参数约定
 
-- pipeline 传进来的是 **JSON 字符串**（`argv.custom_action_param`），必须自行 `json.loads`；
+- pipeline 传进来的是 **JSON 字符串**（`argv.custom_action_param`），但实际也可能是已解析的
+  对象 —— 统一用 `common.params.load_param()` 归一化，别直接 `json.loads`；
 - 解析统一走 `common/params.py`（`as_int` / `as_bool` / `as_str` / `as_str_list`），
   非法参数抛 `ParamError`，在 `run/analyze` 里捕获后**记日志并返回 False/None**，
   不要静默吞掉；

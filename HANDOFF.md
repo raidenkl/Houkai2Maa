@@ -34,6 +34,21 @@
   形态也未采集；社团「可领 → 点击 → 奖励弹窗」分支待走到可领状态时复核。
   在此之前不要编造坐标/文案。详见 §6。
 
+### Agent 已接线（2026-10-22，待真机验证）
+
+第一次真的用上「方案二」：活动清体力改成 **JSON 定格 + Custom 插点**，
+识别/点击/坐标全部留在 JSON，只有「这一场算不算数 / 还能不能换体力 / 该不该收尾」
+交给 Python。
+
+- 三个 Custom 动作：`FarmReset`（Begin 清零）、`FarmRoute`（Entry 场景分发）、
+  `FarmRound`（Result 计场与收敛）；判断逻辑在 `assets/agent/common/farm_flow.py`
+- 打包：`tools/install.py` 检测 `deps/python` 才注入 `agent` 块；
+  CI 的 `python-win-x64` 作业负责准备运行时（只有 win-x64 带）
+- 自检：`verify_install()` 会拦住「有 Custom 节点却没有 agent 块」的 win-x64 包
+- **Agent 缺席 = Custom 动作硬失败**，靠节点自己的 `on_error` 退到 Home 收尾；
+  Agent 在跑但处理函数抛异常时不改写 `next`，落回 JSON 候选顺序
+- 真机验证清单见本次提交说明；验证前不要假设它已经跑通
+
 ---
 
 ## 1. 新环境 5 分钟上手
