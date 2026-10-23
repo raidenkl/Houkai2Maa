@@ -5,7 +5,7 @@
     "name": "MaaHoukai2",
     "label": "崩坏学园2 小助手",
     "github": "https://github.com/raidenkl/Houkai2Maa",
-    "version": "2.0.0-dev.1",
+    "version": "2.0.0",
     "contact": "https://github.com/raidenkl/Houkai2Maa/issues",
     "license": "MIT",
     "welcome": "欢迎使用 MaaHoukai2！先在「控制器」里连上模拟器（分辨率建议 1280×720），再到「一键日常」勾选要跑的步骤即可。",
