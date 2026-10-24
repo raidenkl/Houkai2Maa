@@ -46,6 +46,14 @@
                 "FamiliarExploreTab",
                 "FamiliarExploreDone"
             ]
+        },
+        {
+            "image": "dispatch-page.png",
+            "hits": [
+                "FamiliarExploreDispatch",
+                "FamiliarExploreDepart"
+            ],
+            "comment": "使魔选择页：2026-10-24 一键日常失败现场。点「点击选择使魔」后转场慢于 Select 的等待时会停在这一页，Dispatch/Depart 必须能认出来兜底"
         }
     ]
 }

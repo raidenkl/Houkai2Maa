@@ -85,7 +85,12 @@
             "FamiliarExploreClaim",
             "FamiliarExploreSelect",
             "FamiliarExploreScroll",
-            "FamiliarExploreDone"
+            "FamiliarExploreDone",
+            // 兜底：万一转场慢过 Select 的等待，流程会停在使魔选择页，上面四个候选
+            // 都不命中 → 干等 5s 后 bad next，整个任务失败（实测 2026-10-24）。
+            // Dispatch 能认出这一页（实测 score 0.985），直接复用；
+            // 它自带 max_hit，所以这条兜底不会变成死循环。
+            "FamiliarExploreDispatch"
         ]
     },
     "FamiliarExploreClaim": {
@@ -200,7 +205,19 @@
         "action": {
             "type": "Click"
         },
-        "timeout": 2500,
+        // 2026-10-24 实测（一键日常必现，单跑碰不到）：点「点击选择使魔」后页面转场
+        // 要约 1~6s。不等待的话，同一轮迭代里 Dispatch 的第一帧识别落在转场中的
+        // 花屏上（OCR 读出「雨西口」），而 Panel 会匹配到还没退干净的列表帧 →
+        // 流程停在一个「列表页节点」上，等页面真的切过来，它的四个候选全部不命中
+        // → 5s 后 bad next，整个任务失败。
+        // 一键日常里前面连点了三次「领取奖励」，设备忙着做动画，转场特别慢；
+        // 单跑时列表基本是空的，点不到「点击选择使魔」，所以复现不了。
+        // 整屏等静止（不设 target）：列表页本身是静止的，点击无效时会立刻通过。
+        "post_wait_freezes": {
+            "time": 300,
+            "timeout": 6000
+        },
+        "timeout": 8000,
         // 兜底写进 next，不写 on_error：候选识别失败时 on_error 不会触发（实测），
         // 只写一个候选会让整条链路卡到超时。
         "next": [
@@ -209,6 +226,9 @@
         ]
     },
     "FamiliarExploreDispatch": {
+        // max_hit 与 Select 对齐：这一节点同时服务两条路径（Select 转场过来的正常路径、
+        // Panel 的兜底路径），没有上限时「点了出发却没回列表」会变成死循环。
+        "max_hit": 6,
         "recognition": {
             "type": "OCR",
             "param": {
